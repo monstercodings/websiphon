@@ -1,7 +1,7 @@
 # 爬虫框架
 
-![](https://img.shields.io/badge/language-java-blue.svg)
 ![](https://travis-ci.org/monstercodings/websiphon.svg?branch=master)
+![](https://img.shields.io/badge/language-java-blue.svg)
 
 
 `Designed By Jian.He`
