@@ -136,7 +136,7 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
                                     .addLast("LiveIdleStateHandler", new LiveIdleStateHandler(request, crawlerContext, request.getTimeout()))
                                     .addLast("HttpClientCodec", new HttpClientCodec())
 //                                    .addLast("HttpRequestEncoder", new HttpRequestEncoder())
-//                                    .addLast("HttpResponseDecoder", new HttpResponseDecoder())
+                                    .addLast("HttpResponseDecoder", new HttpResponseDecoder())
                             ;
                             if (!isProxy) {
                                 ch.pipeline()
