@@ -259,13 +259,14 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
                             .set("Host", httpProtocol.getHost() + ":" + httpProtocol.getPort())
                             .set("Referer", httpProtocol.getHost())
                             .set("Accept-Encoding", "gzip, deflate, compress");
+                    request.getHeaders().forEach((key, value) -> httpRequest.headers().set(key, value));
                 } else {
                     httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(request.getMethod().name()), httpProtocol.getPath(), byteBuf == null ? Unpooled.EMPTY_BUFFER : byteBuf);
-                    request.getHeaders().forEach((key, value) -> httpRequest.headers().set(key, value));
                     httpRequest.headers()
                             .set("Host", httpProtocol.getHost() + ":" + httpProtocol.getPort())
                             .set("Referer", httpProtocol.getHost())
                             .set("Accept-Encoding", "gzip, deflate, compress");
+                    request.getHeaders().forEach((key, value) -> httpRequest.headers().set(key, value));
                 }
                 channelFuture.channel().writeAndFlush(httpRequest).addListener((ChannelFutureListener) channelFuture1 -> {
                     if (sendSuccess(request, crawlerContext, channelFuture1)) return;

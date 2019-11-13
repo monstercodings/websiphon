@@ -10,6 +10,8 @@ import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.core.support.CrawlerBuilder;
 import top.codings.websiphon.exception.WebParseException;
 
+import java.util.HashMap;
+
 @Slf4j
 public class SpiderDemo {
     @Test
@@ -45,6 +47,7 @@ public class SpiderDemo {
         request.setMaxDepth(1);
         // 设置超时
         request.setTimeout(6000);
+        request.setHeaders(new HashMap<>());
         // 将任务推送给爬虫
         crawler.push(request);
         Thread.currentThread().join();
