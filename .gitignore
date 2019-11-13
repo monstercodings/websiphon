@@ -25,7 +25,6 @@ out/
 src/main/resources/META-INF
 classes/
 data/
-src/test/
 config/
 test-data/
 chrome_data/

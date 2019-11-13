@@ -9,9 +9,37 @@
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <tag>master</tag>
+        <url>https://github.com/monstercodings/websiphon</url>
+        <connection>scm:https://github.com/monstercodings/websiphon.git</connection>
+        <developerConnection>scm:https://github.com/monstercodings/websiphon.git</developerConnection>
+    </scm>
+    <developers>
+        <developer>
+            <name>元気</name>
+            <email>monstercodings@163.com</email>
+            <organization>Null</organization>
+        </developer>
+    </developers>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <java.version>1.8</java.version>
         <skipTests>true</skipTests>
         <maven.javadoc.skip>true</maven.javadoc.skip>

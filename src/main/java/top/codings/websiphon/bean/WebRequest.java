@@ -29,10 +29,10 @@ public class WebRequest {
     protected int timeout;
     @Getter
     @Setter
-    protected short depth;
+    protected int depth;
     @Getter
     @Setter
-    protected short maxDepth;
+    protected int maxDepth;
     @Getter
     @Setter
     protected WebResponse response;
