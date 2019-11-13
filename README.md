@@ -1,6 +1,6 @@
 # Websiphon 爬虫框架
 
-![](https://travis-ci.org/monstercodings/websiphon.svg?branch=master)
+[![Build Status](https://travis-ci.org/monstercodings/websiphon.svg?branch=master)](https://travis-ci.org/monstercodings/websiphon)
 ![](https://img.shields.io/badge/language-java-blue.svg)
 
 ### Maven坐标
