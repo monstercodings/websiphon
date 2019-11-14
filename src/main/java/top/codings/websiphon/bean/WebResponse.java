@@ -23,6 +23,7 @@ public class WebResponse {
     protected Map<String, String> headers = new HashMap<>();
     protected int statusCode;
     protected boolean redirect = false;
+    protected String redirectUrl;
 
     /*@Deprecated
     public Document getDocument() {

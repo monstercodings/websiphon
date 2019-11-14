@@ -162,7 +162,12 @@ public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W>
         // 创建客户端I/O反应器
         ioReactor = new DefaultConnectingIOReactor();
         // 创建HTTP连接池
-        pool = new BasicNIOConnPool(ioReactor, new BasicNIOConnFactory(new DefaultNHttpClientConnectionFactory(ConnectionConfig.DEFAULT), new SSLNHttpClientConnectionFactory(ConnectionConfig.DEFAULT)), 30000);
+        pool = new BasicNIOConnPool(
+                ioReactor,
+                new BasicNIOConnFactory(
+                        new DefaultNHttpClientConnectionFactory(ConnectionConfig.DEFAULT),
+                        new SSLNHttpClientConnectionFactory(ConnectionConfig.DEFAULT)),
+                30000);
         // 数限2个连接总数
         pool.setDefaultMaxPerRoute(Integer.MAX_VALUE);
         pool.setMaxTotal(Integer.MAX_VALUE);

@@ -15,6 +15,7 @@ import top.codings.websiphon.core.plugins.PluginFactory;
 import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.processor.WebProcessor;
 import top.codings.websiphon.core.proxy.manager.ProxyManager;
+import top.codings.websiphon.core.requester.BasicAsyncWebRequester;
 import top.codings.websiphon.core.requester.NettyWebRequester;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.support.BasicCrawler;
@@ -98,7 +99,7 @@ public class BasicWebFactory implements WebFactory {
     @Override
     public Crawler build() {
         if (requester == null) {
-            requester = new NettyWebRequester();
+            requester = new BasicAsyncWebRequester();
         }
         if (readWritePipeline == null) {
             readWritePipeline = new BasicReadWritePipeline();

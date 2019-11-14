@@ -15,7 +15,7 @@ public interface WebRequester<IN extends WebRequest> extends WebType {
      */
     void init() throws Exception;
 
-    void execute(IN in);
+    void execute(IN in) throws WebNetworkException;
 
     /**
      * 当前正在请求的连接数
