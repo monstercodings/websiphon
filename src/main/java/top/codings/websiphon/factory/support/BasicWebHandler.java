@@ -140,9 +140,9 @@ public class BasicWebHandler implements WebHandler {
     @Override
     public void handleResponse(WebRequest request) {
         networkToken.release();
-        if (readWritePipeline instanceof BasicReadWritePipeline) {
+        /*if (readWritePipeline instanceof BasicReadWritePipeline) {
             ((BasicReadWritePipeline) readWritePipeline).eliminateForRequest(request);
-        }
+        }*/
         WebResponse response = request.getResponse();
         if (request == null) {
 //            log.warn("任务尚未进行 -> {}", request.getUrl());

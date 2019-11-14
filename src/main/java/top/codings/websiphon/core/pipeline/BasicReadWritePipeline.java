@@ -36,7 +36,7 @@ public class BasicReadWritePipeline implements ReadWritePipeline {
     @Override
     public void init() {
         token = new Semaphore(Integer.MAX_VALUE);
-        Thread thread = new Thread(() -> {
+        /*Thread thread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 hostStat.forEach((host, compose) -> {
                     if (compose.at.get() < currentRequestByHost) {
@@ -50,7 +50,7 @@ public class BasicReadWritePipeline implements ReadWritePipeline {
             }
         });
         thread.setDaemon(true);
-        thread.start();
+        thread.start();*/
     }
 
     /**
@@ -74,7 +74,7 @@ public class BasicReadWritePipeline implements ReadWritePipeline {
     @Override
     public PushResult write(WebRequest webRequest) {
         if (token.tryAcquire()) {
-            HttpOperator.HttpProtocol protocol = HttpOperator.resolve(webRequest.getUrl());
+            /*HttpOperator.HttpProtocol protocol = HttpOperator.resolve(webRequest.getUrl());
             RequestCompose rc = hostStat.get(protocol.getHost());
             if (rc == null) {
                 synchronized (this) {
@@ -85,8 +85,8 @@ public class BasicReadWritePipeline implements ReadWritePipeline {
                     }
                 }
             }
-            rc.queue.offer(webRequest);
-//            queue.offer(webRequest);
+            rc.queue.offer(webRequest);*/
+            requests.offer(webRequest);
             size.getAndIncrement();
             return PushResult.SUCCESS;
         }
