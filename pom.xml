@@ -6,13 +6,16 @@
 
     <groupId>top.codings</groupId>
     <artifactId>websiphon</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>org.sonatype.oss</groupId>
+        <!--<groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
-        <version>7</version>
+        <version>7</version>-->
+        <artifactId>root-pom</artifactId>
+        <groupId>root-pom</groupId>
+        <version>0.0.2</version>
     </parent>
 
     <licenses>
