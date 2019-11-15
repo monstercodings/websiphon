@@ -21,11 +21,13 @@ import java.util.HashMap;
 public class SpiderDemo {
     @Test
     public void test() throws InterruptedException {
+        BasicAsyncWebRequester requester = new BasicAsyncWebRequester(true);
+        requester.setIgnoreHttpError(true);
         // 构建爬虫对象
-        ProxyManager manager=new BasicProxyManager()
+        ProxyManager manager = new BasicProxyManager()
                 .addProxy(new ProxyExtension("127.0.0.1", 1080));
         Crawler crawler = CrawlerBuilder.create()
-                .addLast(new BasicAsyncWebRequester())
+                .addLast(requester)
                 // 配置文档处理器，用于解析返回的html并抽取你想要的信息
                 .addLast(new WebProcessorAdapter<WebRequest>() {
                     @Override
@@ -34,9 +36,9 @@ public class SpiderDemo {
                             return;
                         }
                         if (request.getResponse().isRedirect()) {
-                            log.debug("[跳转] 原链：{} | 转链：{}", request.getResponse().getUrl(), request.getResponse().getRedirectUrl());
+                            log.debug("[{}] [跳转] 原链：{} | 转链：{}", request.getResponse().getStatusCode(), request.getResponse().getUrl(), request.getResponse().getRedirectUrl());
                         } else {
-                            log.debug("[正常] 链接：{}", request.getResponse().getUrl());
+                            log.debug("[{}] [正常] 链接：{}", request.getResponse().getStatusCode(), request.getResponse().getUrl());
                         }
 //                        log.debug("收到响应 -> {} | {}", Jsoup.parse(request.getResponse().getHtml()).title(), request.getUrl());
 //                        log.debug("{}", request.getResponse().getHtml());
@@ -48,7 +50,7 @@ public class SpiderDemo {
                     log.debug("采集完成");
                     System.exit(0);
                 })
-                .enableProxy(manager)
+//                .enableProxy(manager)
                 // 设置网络请求最大并发数
                 .setNetworkThread(5)
                 // 设置最大处理线程数
@@ -61,16 +63,16 @@ public class SpiderDemo {
         // 构建爬取任务
         WebRequest request = new WebRequest();
         // 设置需要爬取的入口URL
-        request.setUrl("https://www.google.com");
+        request.setUrl("http://baidu.com");
 //        request.setUrl("http://2000019.ip138.com/");
         // 使用扩散插件的情况下，最大的扩散深度
         request.setMaxDepth(1);
         // 设置超时
-        request.setTimeout(2000);
+        request.setTimeout(200000);
         request.setHeaders(new HashMap<>());
         // 将任务推送给爬虫
         crawler.push(request);
-        Runtime.getRuntime().addShutdownHook(new Thread(()-> crawler.close()));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> crawler.close()));
         Thread.currentThread().join();
     }
 }

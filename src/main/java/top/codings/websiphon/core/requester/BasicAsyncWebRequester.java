@@ -3,12 +3,15 @@ package top.codings.websiphon.core.requester;
 import com.alibaba.fastjson.JSON;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.http.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.protocol.RequestAcceptEncoding;
+import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.config.Registry;
@@ -29,13 +32,13 @@ import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.util.EntityUtils;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebResponse;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.exception.WebNetworkException;
+import top.codings.websiphon.util.ByteUtils;
 import top.codings.websiphon.util.HeadersUtils;
 import top.codings.websiphon.util.HttpDecodeUtils;
 import top.codings.websiphon.util.HttpOperator;
@@ -46,6 +49,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -55,9 +59,20 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
     @Getter
     private boolean health = false;
 
+    @Setter
+    @Getter
     private boolean redirect = false;
+    @Setter
+    @Getter
+    private boolean ignoreHttpError = false;
+    @Setter
+    @Getter
+    private int maxRedirects = 3;
+    @Setter
+    @Getter
+    private int maxPerRoute = 2;
     private CloseableHttpAsyncClient httpAsyncClient;
-    private RequestConfig requestConfig;
+//    private RequestConfig requestConfig;
     private AtomicInteger size = new AtomicInteger(0);
 
     public BasicAsyncWebRequester(boolean redirect) {
@@ -68,17 +83,13 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
     public void init() throws Exception {
         int ioThreadCount = Runtime.getRuntime().availableProcessors();
         int maxConnTotal = Integer.MAX_VALUE;
-        int maxPerRoute = 2;
-
-//        proxyConfig = config.proxyConfig();
-
         try {
-            requestConfig = RequestConfig.custom()
+            /*requestConfig = RequestConfig.custom()
                     .setMaxRedirects(2)
-                    .setContentCompressionEnabled(true)
+                    .setContentCompressionEnabled(false)
                     .setExpectContinueEnabled(true)
                     .setRedirectsEnabled(redirect)
-                    .build();
+                    .build();*/
 
             IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
                     .setBacklogSize(10240)
@@ -103,11 +114,12 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
 //            CredentialsProvider credsProvider = new BasicCredentialsProvider();
             httpAsyncClient = HttpAsyncClients.custom()
                     .setConnectionManager(connManager)
-                    .setDefaultRequestConfig(requestConfig)
+//                    .setDefaultRequestConfig(requestConfig)
 //                    .setDefaultCredentialsProvider(credsProvider)
 //                    .setSSLContext(SSLContextBuilder.create().loadTrustMaterial((x509Certificates, s) -> true).build())
 //                    .setSSLHostnameVerifier((hostname, session) -> true)
                     .addInterceptorLast(new RequestTargetHost())
+                    .addInterceptorLast(new RequestAcceptEncoding(Arrays.asList("compress")))
                     .addInterceptorLast(new RequestConnControl())
                     .addInterceptorLast(new RequestContent(true))
                     .addInterceptorLast((HttpRequestInterceptor) (httpRequest, httpContext) -> {
@@ -132,61 +144,35 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
                             httpRequest.addHeader("Referer", webRequest.getUrl());
                         }
                     })
+                    .addInterceptorLast(new ResponseContentEncoding())
                     .addInterceptorLast((HttpResponseInterceptor) (httpResponse, httpContext) -> {
-                        size.decrementAndGet();
-                        try {
-                            WebRequest webRequest = ((HttpClientContext) httpContext).getAttribute(WebRequest.class.getName(), WebRequest.class);
-                            WebResponse webResponse = webRequest.getResponse();
-                            if (null == webResponse) {
-                                webResponse = new WebResponse();
-                                webRequest.setResponse(webResponse);
+                        WebRequest webRequest = ((HttpClientContext) httpContext).getAttribute(WebRequest.class.getName(), WebRequest.class);
+                        WebResponse webResponse = webRequest.getResponse();
+                        if (null == webResponse) {
+                            webResponse = new WebResponse();
+                            webRequest.setResponse(webResponse);
+                        }
+                        int respCode = httpResponse.getStatusLine().getStatusCode();
+                        // 允许跳转且处于跳转状态
+                        if (respCode >= 300 && respCode < 400 && redirect) {
+                            Header locationHeader = httpResponse.getFirstHeader("location");
+                            if (null != locationHeader) {
+                                String location = locationHeader.getValue();
+                                location = location.replace(":80", "").replace(":443", "");
+                                webResponse.setRedirect(true);
+                                webResponse.setRedirectUrl(HttpOperator.recombineLink(location, webRequest.getUrl()));
                             }
-                            int respCode = httpResponse.getStatusLine().getStatusCode();
-                            // 装填响应头信息
-                            for (Header header : httpResponse.getAllHeaders()) {
-                                if (webResponse.getHeaders().containsKey(header.getName())) {
-                                    String value = webResponse.getHeaders().get(header.getName());
-                                    value = value + ";" + header.getValue();
-                                    webResponse.getHeaders().put(header.getName(), value);
-                                } else {
-                                    webResponse.getHeaders().put(header.getName(), header.getValue());
-                                }
+                            return;
+                        }
+                        // 装填响应头信息
+                        for (Header header : httpResponse.getAllHeaders()) {
+                            if (webResponse.getHeaders().containsKey(header.getName())) {
+                                String value = webResponse.getHeaders().get(header.getName());
+                                value = value + ";" + header.getValue();
+                                webResponse.getHeaders().put(header.getName(), value);
+                            } else {
+                                webResponse.getHeaders().put(header.getName(), header.getValue());
                             }
-                            // 判断响应码是否正常
-                            if (respCode >= 300 && respCode < 400) {
-                                if (redirect) {
-                                    webResponse.getHeaders().clear();
-                                    Header locationHeader = httpResponse.getFirstHeader("location");
-                                    if (null != locationHeader) {
-                                        String location = locationHeader.getValue();
-                                        location = location.replace(":80", "").replace(":443", "");
-                                        /*WebRequest redirectRequest;
-                                        try {
-                                            redirectRequest = (WebRequest) BeanUtils.cloneBean(webRequest);
-                                        } catch (Exception e) {
-                                            throw new HttpException("", new WebNetworkException("克隆跳转对象失败", e));
-                                        }
-                                        redirectRequest.setUrl(HttpOperator.recombineLink(location, webRequest.getUrl()));
-                                        redirectRequest.setResponse(webResponse);*/
-                                        webResponse.setRedirect(true);
-                                        webResponse.setRedirectUrl(HttpOperator.recombineLink(location, webRequest.getUrl()));
-                                        /*PushResult pushResult = crawlerContext.getCrawler().push(redirectRequest);
-                                        if (pushResult != PushResult.SUCCESS && pushResult != PushResult.URL_REPEAT) {
-                                            log.debug("跳转失败 [{}] | 原链接:{} | 跳转链接:{}", pushResult.value, webRequest.getUrl(), redirectRequest.getUrl());
-                                        }
-                                        webRequest.setResponse(null);*/
-                                    }
-                                } else {
-                                    throw new HttpException("", new WebNetworkException(String.format("响应码不是2xx [%d]", httpResponse.getStatusLine().getStatusCode())));
-                                }
-                            } else if (!(respCode >= 200 && respCode < 300)) {
-//                                fillResponseBody(httpResponse, webRequest);
-                                throw new HttpException("", new WebNetworkException(String.format("响应码不是2xx [%d]", httpResponse.getStatusLine().getStatusCode())));
-                            }
-                        } catch (HttpException e) {
-                            throw e;
-                        } catch (Exception e) {
-                            throw new HttpException("发生未知异常", e);
                         }
                     })
                     .build();
@@ -199,7 +185,6 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
 
     @Override
     public void execute(WebRequest webRequest) throws WebNetworkException {
-        CrawlerContext crawlerContext = webRequest.context();
         HttpRequestBase httpRequest;
         httpRequest = initMethod(webRequest);
         initHeaders(webRequest, httpRequest);
@@ -214,69 +199,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
             httpAsyncClient.execute(
                     httpRequest,
                     context,
-                    new FutureCallback<HttpResponse>() {
-                        @Override
-                        public void completed(HttpResponse httpResponse) {
-                            try {
-                                WebResponse webResponse = webRequest.getResponse();
-                                if (null == webResponse) {
-                                    crawlerContext.finishRequest(webRequest);
-                                    return;
-                                }
-                                fillResponseBody(httpResponse, webRequest);
-
-                                /*log.debug(" 响应码[{}]", httpResponse.getStatusLine().getReasonPhrase());
-                                log.debug(" 内容\n{}", JSON.toJSONString(EntityUtils.toString(httpResponse.getEntity(), "utf-8"), true));
-                                close();
-                                System.exit(0);*/
-                            } catch (Exception e) {
-                                WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
-                                event.setThrowable(e);
-                                event.setContext(crawlerContext);
-                                event.setRequest(webRequest);
-                                webRequest.getResponse().setErrorEvent(event);
-                            } finally {
-                                crawlerContext.finishRequest(webRequest);
-                                HttpClientUtils.closeQuietly(httpResponse);
-                            }
-                        }
-
-                        @Override
-                        public void failed(Exception e) {
-                            size.decrementAndGet();
-                            try {
-                                Throwable throwable = e;
-                                if (e instanceof HttpException) {
-                                    throwable = e.getCause();
-                                }
-                                if (webRequest.getResponse() == null) {
-                                    webRequest.setResponse(new WebResponse());
-                                }
-                                WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
-                                event.setThrowable(throwable);
-                                event.setContext(crawlerContext);
-                                event.setRequest(webRequest);
-                                webRequest.getResponse().setErrorEvent(event);
-                            } finally {
-                                crawlerContext.finishRequest(webRequest);
-                            }
-                        }
-
-                        @Override
-                        public void cancelled() {
-                            size.decrementAndGet();
-                            try {
-                                webRequest.setResponse(new WebResponse());
-                                WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
-                                event.setThrowable(new CancellationException("请求被强制取消"));
-                                event.setContext(crawlerContext);
-                                event.setRequest(webRequest);
-                                webRequest.getResponse().setErrorEvent(event);
-                            } finally {
-                                crawlerContext.finishRequest(webRequest);
-                            }
-                        }
-                    });
+                    new AsyncFutureCallback(webRequest));
         } catch (Exception e) {
             size.decrementAndGet();
             throw new WebNetworkException("执行异步请求失败");
@@ -286,6 +209,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
 
     /**
      * 装填响应主体
+     *
      * @param httpResponse
      * @param webRequest
      * @throws IOException
@@ -299,7 +223,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
         // 装填URL
         webResponse.setUrl(webRequest.getUrl());
         // 装填响应内容
-        webResponse.setBytes(EntityUtils.toByteArray(httpResponse.getEntity()));
+        webResponse.setBytes(ByteUtils.readAllBytes(httpResponse.getEntity().getContent()));
         ContentType contentType;
         Charset charset;
         String encoding;
@@ -326,6 +250,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
 
     /**
      * 初始化特定配置
+     *
      * @param webRequest
      * @param httpRequest
      */
@@ -340,6 +265,10 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
                 .setSocketTimeout(webRequest.getTimeout())
                 .setConnectTimeout(webRequest.getTimeout())
                 .setConnectionRequestTimeout(webRequest.getTimeout())
+                .setRedirectsEnabled(redirect)
+                .setMaxRedirects(maxRedirects)
+                .setContentCompressionEnabled(false)
+                .setExpectContinueEnabled(true)
                 .build();
         httpRequest.setConfig(config);
     }
@@ -445,4 +374,80 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
             e.printStackTrace();
         }
     }
+
+    private class AsyncFutureCallback implements FutureCallback<HttpResponse> {
+        CrawlerContext crawlerContext;
+        WebRequest webRequest;
+
+        public AsyncFutureCallback(WebRequest webRequest) {
+            this.webRequest = webRequest;
+            crawlerContext = webRequest.context();
+        }
+
+        @Override
+        public void completed(HttpResponse httpResponse) {
+            size.decrementAndGet();
+            try {
+                WebResponse webResponse = webRequest.getResponse();
+                if (null == webResponse) {
+                    crawlerContext.finishRequest(webRequest);
+                    return;
+                }
+                fillResponseBody(httpResponse, webRequest);
+                if (!ignoreHttpError) {
+                    int respCode = webResponse.getStatusCode();
+                    // 判断响应码是否正常
+                    if (!(respCode >= 200 && respCode < 300)) {
+                        throw new WebNetworkException(String.format("响应码不是2xx [%d]", httpResponse.getStatusLine().getStatusCode()));
+                    }
+                }
+            } catch (Exception e) {
+                WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
+                event.setThrowable(e);
+                event.setContext(crawlerContext);
+                event.setRequest(webRequest);
+                webRequest.getResponse().setErrorEvent(event);
+            } finally {
+                crawlerContext.finishRequest(webRequest);
+                HttpClientUtils.closeQuietly(httpResponse);
+            }
+        }
+
+        @Override
+        public void failed(Exception e) {
+            size.decrementAndGet();
+            try {
+                Throwable throwable = e;
+                if (e instanceof HttpException) {
+                    throwable = e.getCause();
+                }
+                if (webRequest.getResponse() == null) {
+                    webRequest.setResponse(new WebResponse());
+                }
+                WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
+                event.setThrowable(throwable);
+                event.setContext(crawlerContext);
+                event.setRequest(webRequest);
+                webRequest.getResponse().setErrorEvent(event);
+            } finally {
+                crawlerContext.finishRequest(webRequest);
+            }
+        }
+
+        @Override
+        public void cancelled() {
+            size.decrementAndGet();
+            try {
+                webRequest.setResponse(new WebResponse());
+                WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
+                event.setThrowable(new CancellationException("请求被强制取消"));
+                event.setContext(crawlerContext);
+                event.setRequest(webRequest);
+                webRequest.getResponse().setErrorEvent(event);
+            } finally {
+                crawlerContext.finishRequest(webRequest);
+            }
+        }
+    }
+
 }

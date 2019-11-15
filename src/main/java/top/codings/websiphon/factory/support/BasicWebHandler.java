@@ -94,6 +94,7 @@ public class BasicWebHandler implements WebHandler {
     public void request() throws InterruptedException {
         networkToken.acquire();
         WebRequest request = readWritePipeline.read();
+        // TODO 校验URL正确性
         CrawlerContext context = request.context();
         try {
             request.setProxy(Optional.ofNullable(request.getProxy()).orElse(proxyPool.select()));

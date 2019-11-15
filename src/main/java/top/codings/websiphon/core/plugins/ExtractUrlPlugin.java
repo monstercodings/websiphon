@@ -74,6 +74,7 @@ public class ExtractUrlPlugin implements WebPlugin {
         }
         if (params.length == 2 && WebRequest.class.isAssignableFrom(params[0].getClass())) {
             WebRequest request = (WebRequest) params[0];
+            // 判断
             if (request.getResponse().getContentType().startsWith("text")) {
                 Document document = Jsoup.parse(request.getResponse().getHtml());
                 Collection<String> urls = new HashSet<>();
