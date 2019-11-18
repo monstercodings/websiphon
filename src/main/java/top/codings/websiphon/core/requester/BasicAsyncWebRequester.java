@@ -119,10 +119,11 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
 //                    .setSSLContext(SSLContextBuilder.create().loadTrustMaterial((x509Certificates, s) -> true).build())
 //                    .setSSLHostnameVerifier((hostname, session) -> true)
                     .addInterceptorLast(new RequestTargetHost())
-                    .addInterceptorLast(new RequestAcceptEncoding(Arrays.asList("compress")))
+//                    .addInterceptorLast(new RequestAcceptEncoding(Arrays.asList("compress")))
                     .addInterceptorLast(new RequestConnControl())
                     .addInterceptorLast(new RequestContent(true))
                     .addInterceptorLast((HttpRequestInterceptor) (httpRequest, httpContext) -> {
+                        httpRequest.setHeader("Accept-Encoding", "compress");
                         // 添加请求头伪装
                         WebRequest webRequest = ((HttpClientContext) httpContext).getAttribute(WebRequest.class.getName(), WebRequest.class);
                         if (MapUtils.isEmpty(webRequest.getHeaders())) {
