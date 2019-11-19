@@ -74,7 +74,21 @@ public class ParameterizedTypeUtils {
                 }
             }*/
         } else if (object instanceof WebProcessorAdapter) {
-            Type type = object.getClass().getGenericSuperclass();
+            String className;
+            Type type = null;
+            do {
+                if (type == null) {
+                    type = object.getClass();
+                } else {
+                    type = ((Class) type).getGenericSuperclass();
+                }
+                if (type instanceof Class) {
+                    className = ((Class) type).getSimpleName();
+                } else {
+                    break;
+                }
+            } while (className.contains("$$"));
+//            Type type = object.getClass().getGenericSuperclass();
             if (ParameterizedType.class.isAssignableFrom(type.getClass())) {
                 ParameterizedType parameterizedType = (ParameterizedType) type;
                 return (Class) parameterizedType.getActualTypeArguments()[0];
