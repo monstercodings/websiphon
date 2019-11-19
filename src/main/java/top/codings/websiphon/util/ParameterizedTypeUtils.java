@@ -88,6 +88,9 @@ public class ParameterizedTypeUtils {
                     break;
                 }
             } while (className.contains("$$"));
+            if (type instanceof Class) {
+                type = ((Class) type).getGenericSuperclass();
+            }
 //            Type type = object.getClass().getGenericSuperclass();
             if (ParameterizedType.class.isAssignableFrom(type.getClass())) {
                 ParameterizedType parameterizedType = (ParameterizedType) type;
