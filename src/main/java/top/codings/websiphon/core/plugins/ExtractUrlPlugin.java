@@ -151,7 +151,9 @@ public class ExtractUrlPlugin implements WebPlugin {
                         if (!context.postSyncEvent(event)) {
                             PushResult pushResult;
                             if ((pushResult = context.getCrawler().push(event.getNewRequest())) != PushResult.SUCCESS) {
-                                log.warn("推送扩散链接给爬虫失败 -> {}", pushResult.value);
+                                if (pushResult != PushResult.URL_REPEAT) {
+                                    log.warn("推送扩散链接给爬虫失败 -> {}", pushResult.value);
+                                }
                             }
                         }
                     } catch (Exception e) {

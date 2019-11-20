@@ -15,6 +15,9 @@ import java.util.function.Predicate;
 
 @Slf4j
 public class UrlFilterPlugin<T extends WebRequest> implements WebPlugin {
+    private boolean memCache;
+    private int maxCount;
+    private double fpp;
     private BloomFilter<String> bloomFilter;
     private Predicate<T> filter;
     private ThreadLocal<Boolean> booleanThreadLocal = ThreadLocal.withInitial(() -> true);
@@ -32,10 +35,19 @@ public class UrlFilterPlugin<T extends WebRequest> implements WebPlugin {
     }
 
     public UrlFilterPlugin(boolean memCache, int maxCount, double fpp, Predicate<T> filter) {
+        this.memCache = memCache;
+        this.maxCount = maxCount;
+        this.fpp = fpp;
         if (memCache) {
             bloomFilter = BloomFilter.create(Funnels.stringFunnel(Charset.forName("utf-8")), maxCount, fpp);
         }
         this.filter = filter;
+    }
+
+    public void clear() {
+        if (memCache) {
+            bloomFilter = BloomFilter.create(Funnels.stringFunnel(Charset.forName("utf-8")), maxCount, fpp);
+        }
     }
 
     @Override

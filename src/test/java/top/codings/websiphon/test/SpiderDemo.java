@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.junit.jupiter.api.Test;
+import top.codings.websiphon.bean.PushResult;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.Crawler;
 import top.codings.websiphon.core.context.CrawlerContext;
@@ -31,6 +32,7 @@ public class SpiderDemo {
     @Test
     public void test() throws InterruptedException {
         CrawlManager crawlManager = CrawlManager.create();
+        UrlFilterPlugin urlFilterPlugin = new UrlFilterPlugin();
         BasicAsyncWebRequester requester = new BasicAsyncWebRequester();
 //        requester.setIgnoreHttpError(true);
         // 构建爬虫对象
@@ -57,16 +59,28 @@ public class SpiderDemo {
                     }
                 })
                 .addLast(new ExtractUrlPlugin(true, false))
-                .addLast(new UrlFilterPlugin())
+                .addLast(urlFilterPlugin)
                 .addListener(new WebAsyncEventListener<WebNetworkExceptionEvent>() {
                     @Override
                     public void listen(WebNetworkExceptionEvent event) {
                     }
                 })
-
                 .queueMonitor((ctx, requestHolder, force) -> {
                     log.debug("采集完成");
-                    System.exit(0);
+                    urlFilterPlugin.clear();
+                    CrawlManager.CrawlTask task;
+                    do {
+                        log.debug("尝试拉取爬虫任务");
+                        task = crawlManager.getTask();
+                    } while (task.getCode() != 0);
+                    WebRequest request = new WebRequest();
+                    request.setUrl(task.getData().toString());
+                    request.setMaxDepth(1);
+                    // 设置超时
+                    request.setTimeout(6000);
+                    // 将任务推送给爬虫
+                    PushResult pushResult = ctx.getCrawler().push(request);
+                    log.debug("推送结果 -> {}", pushResult.value);
                 })
 //                .enableProxy(manager)
                 // 设置网络请求最大并发数
