@@ -94,6 +94,15 @@ public class HttpOperator {
         return new HttpProtocol(scheme, path, domain, port);
     }
 
+    /**
+     * URL合法性校验
+     * @param url
+     * @return
+     */
+    public static boolean urlLegalVerify(String url) {
+        return pattern.matcher(url).find();
+    }
+
     @Data
     @AllArgsConstructor
     public static class HttpProtocol {

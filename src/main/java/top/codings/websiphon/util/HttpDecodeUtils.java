@@ -49,17 +49,21 @@ public class HttpDecodeUtils {
     }
 
     public static String findCharset(String text) {
-        Document document = Jsoup.parse(text);
-        Elements metas = document.select("meta");
-        for (Element meta : metas) {
-            String encoding = meta.attr("charset");
-            if (StringUtils.isNotBlank(encoding)) {
-                return encoding;
+        try {
+            Document document = Jsoup.parse(text);
+            Elements metas = document.select("meta");
+            for (Element meta : metas) {
+                String encoding = meta.attr("charset");
+                if (StringUtils.isNotBlank(encoding)) {
+                    return encoding;
+                }
+                String content = meta.attr("content");
+                if (StringUtils.isNotBlank(content) && content.contains("charset")) {
+                    return content.substring(content.indexOf("charset=") + "charset=".length());
+                }
             }
-            String content = meta.attr("content");
-            if (StringUtils.isNotBlank(content) && content.contains("charset")) {
-                return content.substring(content.indexOf("charset=") + "charset=".length());
-            }
+        } catch (Exception e) {
+            // TODO Jsoup解析失败
         }
         return Charset.defaultCharset().name();
     }

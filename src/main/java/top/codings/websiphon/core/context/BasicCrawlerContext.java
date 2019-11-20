@@ -1,5 +1,8 @@
 package top.codings.websiphon.core.context;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.RateResult;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
@@ -7,9 +10,6 @@ import top.codings.websiphon.core.context.event.WebSyncEvent;
 import top.codings.websiphon.core.support.BasicCrawler;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.factory.support.BasicWebHandler;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @NoArgsConstructor
 @Slf4j
@@ -29,13 +29,13 @@ public class BasicCrawlerContext implements CrawlerContext {
     }
 
     @Override
-    public void postSyncEvent(WebSyncEvent event) throws WebException {
-        webHandler.postSyncEvent(event);
+    public boolean postSyncEvent(WebSyncEvent event) throws WebException {
+        return webHandler.postSyncEvent(event);
     }
 
     @Override
-    public void postAsyncEvent(WebAsyncEvent event) {
-        webHandler.postAsyncEvent(event);
+    public boolean postAsyncEvent(WebAsyncEvent event) {
+        return webHandler.postAsyncEvent(event);
     }
 
     @Override

@@ -43,14 +43,14 @@ public interface WebHandler<IN extends WebRequest> {
      * 推送异步事件
      * @param event
      */
-    void postAsyncEvent(WebAsyncEvent event);
+    boolean postAsyncEvent(WebAsyncEvent event);
 
     /**
      * 推送同步事件
      * @param event
      * @throws Exception
      */
-    void postSyncEvent(WebSyncEvent event) throws Exception;
+    boolean postSyncEvent(WebSyncEvent event) throws Exception;
 
     /**
      * 关闭爬虫

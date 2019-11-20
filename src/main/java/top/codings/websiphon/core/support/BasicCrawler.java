@@ -89,6 +89,7 @@ public class BasicCrawler implements Crawler {
         if (null == request || StringUtils.isBlank(request.getUrl())) {
             throw new NullPointerException("爬取任务不能为空");
         }
+        request.setUrl(request.getUrl().trim());
         /*if (MapUtils.isEmpty(request.getHeaders())) {
             request.setHeaders(HeadersUtils.getHeaders());
         }*/

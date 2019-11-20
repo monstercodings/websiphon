@@ -1,6 +1,11 @@
 package top.codings.websiphon.core.plugins;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import top.codings.websiphon.bean.MethodDesc;
+import top.codings.websiphon.bean.PushResult;
 import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.context.BasicCrawlerContext;
@@ -10,10 +15,6 @@ import top.codings.websiphon.core.context.event.sync.WebLinkEvent;
 import top.codings.websiphon.core.parser.WebParser;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.util.HttpOperator;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 import java.net.Proxy;
 import java.util.Collection;
@@ -24,10 +25,10 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class ExtractUrlPlugin implements WebPlugin {
-    private String rawRegex = "(\\w+)://([^/:]+)(:\\d*)?([^# ]*)";
-    private Pattern rawPattern = Pattern.compile(rawRegex);
-    private String regex = rawRegex;
-    private Pattern pattern;
+    private String rawfilterRegex = "(\\w+)://([^/:]+)(:\\d*)?([^# ]*)";
+    private Pattern rawFilterPattern = Pattern.compile(rawfilterRegex);
+    private String filterRegex = rawfilterRegex;
+    private Pattern filterPattern;
     private boolean sameDomain;
     private boolean allowHomepage;
     private Predicate<String> filter;
@@ -40,21 +41,21 @@ public class ExtractUrlPlugin implements WebPlugin {
         this(false, true, null, filter);
     }
 
-    public ExtractUrlPlugin(boolean sameDomain, boolean allowHomepage, String regex) {
-        this(sameDomain, allowHomepage, regex, null);
+    public ExtractUrlPlugin(boolean sameDomain, boolean allowHomepage, String filterRegex) {
+        this(sameDomain, allowHomepage, filterRegex, null);
     }
 
     public ExtractUrlPlugin(boolean sameDomain, boolean allowHomepage, Predicate<String> filter) {
         this(sameDomain, allowHomepage, null, filter);
     }
 
-    public ExtractUrlPlugin(boolean sameDomain, boolean allowHomepage, String regex, Predicate<String> filter) {
+    public ExtractUrlPlugin(boolean sameDomain, boolean allowHomepage, String filterRegex, Predicate<String> filter) {
         this.sameDomain = sameDomain;
         this.allowHomepage = allowHomepage;
-        if (StringUtils.isNotBlank(regex)) {
-            this.regex = regex;
+        if (StringUtils.isNotBlank(filterRegex)) {
+            this.filterRegex = filterRegex;
         }
-        pattern = Pattern.compile(this.regex);
+        filterPattern = Pattern.compile(this.filterRegex);
         if (null != filter) {
             this.filter = filter;
         } else {
@@ -74,9 +75,18 @@ public class ExtractUrlPlugin implements WebPlugin {
         }
         if (params.length == 2 && WebRequest.class.isAssignableFrom(params[0].getClass())) {
             WebRequest request = (WebRequest) params[0];
+            if (request.getMaxDepth() > 0 && request.getDepth() >= request.getMaxDepth()) {
+                return result;
+            }
             // 判断
             if (request.getResponse().getContentType().startsWith("text")) {
-                Document document = Jsoup.parse(request.getResponse().getHtml());
+                Document document;
+                try {
+                    document = Jsoup.parse(request.getResponse().getHtml());
+                } catch (Exception e) {
+                    // TODO Jsoup解析失败
+                    return result;
+                }
                 Collection<String> urls = new HashSet<>();
                 document.getElementsByTag("a").forEach(element -> {
                     if (!element.hasAttr("href")) {
@@ -87,12 +97,13 @@ public class ExtractUrlPlugin implements WebPlugin {
                         return;
                     }
                     String url = HttpOperator.recombineLink(href, request.getUrl());
-                    if (StringUtils.isBlank(url) || url.equals(request.getUrl())) {
+                    if (StringUtils.isBlank(url) || url.equals(request.getUrl()) || !HttpOperator.urlLegalVerify(url)) {
                         return;
                     }
+                    url = url.trim();
                     if (sameDomain) {
-                        Matcher oldMatcher = rawPattern.matcher(request.getUrl());
-                        Matcher newMatcher = rawPattern.matcher(url);
+                        Matcher oldMatcher = rawFilterPattern.matcher(request.getUrl());
+                        Matcher newMatcher = rawFilterPattern.matcher(url);
                         if (oldMatcher.find() && newMatcher.find()) {
                             String oldDomain = oldMatcher.group(2);
                             String newDomain = newMatcher.group(2);
@@ -102,7 +113,7 @@ public class ExtractUrlPlugin implements WebPlugin {
                         }
                     }
                     if (!allowHomepage) {
-                        Matcher matcher = rawPattern.matcher(url);
+                        Matcher matcher = rawFilterPattern.matcher(url);
                         if (!matcher.find()) {
                             return;
                         }
@@ -111,7 +122,7 @@ public class ExtractUrlPlugin implements WebPlugin {
                             return;
                         }
                     }
-                    Matcher matcher = pattern.matcher(url);
+                    Matcher matcher = filterPattern.matcher(url);
                     if (!matcher.find()) {
                         return;
                     }
@@ -137,7 +148,12 @@ public class ExtractUrlPlugin implements WebPlugin {
                         event.setContext(context);
                         event.setRequest(request);
                         event.setNewRequest(clone);
-                        context.postSyncEvent(event);
+                        if (!context.postSyncEvent(event)) {
+                            PushResult pushResult;
+                            if ((pushResult = context.getCrawler().push(event.getNewRequest())) != PushResult.SUCCESS) {
+                                log.warn("推送扩散链接给爬虫失败 -> {}", pushResult.value);
+                            }
+                        }
                     } catch (Exception e) {
                         WebExceptionEvent event = new WebExceptionEvent();
                         event.setThrowable(e);

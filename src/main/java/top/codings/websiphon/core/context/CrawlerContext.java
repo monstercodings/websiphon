@@ -20,9 +20,9 @@ public interface CrawlerContext {
 
 //    WebHandler getWebHandler();
 
-    void postSyncEvent(WebSyncEvent event) throws WebException;
+    boolean postSyncEvent(WebSyncEvent event) throws WebException;
 
-    void postAsyncEvent(WebAsyncEvent event);
+    boolean postAsyncEvent(WebAsyncEvent event);
 
     Crawler getCrawler();
 

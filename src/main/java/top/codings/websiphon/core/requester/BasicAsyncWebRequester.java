@@ -186,16 +186,16 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
 
     @Override
     public void execute(WebRequest webRequest) throws WebNetworkException {
-        HttpRequestBase httpRequest;
-        httpRequest = initMethod(webRequest);
-        initHeaders(webRequest, httpRequest);
-        if (webRequest.getBody() instanceof JSON) {
-            httpRequest.setHeader("content-type", "application/json;charset=UTF-8");
-        }
-        initConfig(webRequest, httpRequest);
-        HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(WebRequest.class.getName(), webRequest);
         try {
+            HttpRequestBase httpRequest;
+            httpRequest = initMethod(webRequest);
+            initHeaders(webRequest, httpRequest);
+            if (webRequest.getBody() instanceof JSON) {
+                httpRequest.setHeader("content-type", "application/json;charset=UTF-8");
+            }
+            initConfig(webRequest, httpRequest);
+            HttpClientContext context = HttpClientContext.create();
+            context.setAttribute(WebRequest.class.getName(), webRequest);
             size.incrementAndGet();
             httpAsyncClient.execute(
                     httpRequest,
@@ -203,7 +203,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
                     new AsyncFutureCallback(webRequest));
         } catch (Exception e) {
             size.decrementAndGet();
-            throw new WebNetworkException("执行异步请求失败");
+            throw new WebNetworkException("执行异步请求失败", e);
         }
 
     }

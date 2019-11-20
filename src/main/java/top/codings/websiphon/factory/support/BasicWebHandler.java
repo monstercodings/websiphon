@@ -259,9 +259,10 @@ public class BasicWebHandler implements WebHandler {
     }
 
     @Override
-    public void postAsyncEvent(WebAsyncEvent event) {
+    public boolean postAsyncEvent(WebAsyncEvent event) {
         if (asyncMap.containsKey(event.getClass())) {
             asyncEventExecutor.submit(() -> asyncMap.get(event.getClass()).listen(event));
+            return true;
         } else {
             if (event instanceof WebErrorAsyncEvent) {
                 WebErrorAsyncEvent webErrorAsyncEvent = (WebErrorAsyncEvent) event;
@@ -273,15 +274,17 @@ public class BasicWebHandler implements WebHandler {
                         event1.setRequest(webErrorAsyncEvent.getRequest());
                         asyncMap.get(AllExceptionEvent.class).listen(event1);
                     });
+                    return true;
                 } else {
                     log.error("未捕获异常", webErrorAsyncEvent.getThrowable());
                 }
             }
         }
+        return false;
     }
 
     @Override
-    public void postSyncEvent(WebSyncEvent event) throws WebException {
+    public boolean postSyncEvent(WebSyncEvent event) throws WebException {
         if (syncMap.containsKey(event.getClass())) {
             try {
                 syncMap.get(event.getClass()).listen(event);
@@ -291,7 +294,9 @@ public class BasicWebHandler implements WebHandler {
                 WebException exception = new WebException(e);
                 throw exception;
             }
+            return true;
         }
+        return false;
     }
 
     @Override
