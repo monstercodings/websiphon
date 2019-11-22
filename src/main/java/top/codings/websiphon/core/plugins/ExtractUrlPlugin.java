@@ -1,6 +1,7 @@
 package top.codings.websiphon.core.plugins;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -136,7 +137,7 @@ public class ExtractUrlPlugin implements WebPlugin {
 //                log.debug("扩散总数 -> {}", urls.size());
                 urls.forEach(url -> {
                     try {
-                        WebRequest clone = request.getClass().getDeclaredConstructor().newInstance();
+                        WebRequest clone = (WebRequest) BeanUtils.cloneBean(request);
                         clone.setUrl(url);
                         clone.setMethod(request.getMethod());
                         clone.setProxy(request.getProxy() == Proxy.NO_PROXY ? request.getProxy() : null);
