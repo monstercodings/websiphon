@@ -74,7 +74,7 @@ public class SpiderDemo {
                         task = crawlManager.getTask();
                     } while (task.getCode() != 0);
                     WebRequest request = new WebRequest();
-                    request.setUrl(task.getData().toString());
+                    request.setUrl(task.getData().getHomepage());
                     request.setMaxDepth(1);
                     // 设置超时
                     request.setTimeout(6000);
@@ -101,7 +101,7 @@ public class SpiderDemo {
         // 构建爬取任务
         WebRequest request = new WebRequest();
         // 设置需要爬取的入口URL
-        request.setUrl(task.getData().toString());
+        request.setUrl(task.getData().getHomepage());
 //        request.setUrl("http://2000019.ip138.com/");
         // 使用扩散插件的情况下，最大的扩散深度
         request.setMaxDepth(1);

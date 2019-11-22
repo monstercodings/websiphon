@@ -7,6 +7,7 @@ import feign.codec.Decoder;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
 import lombok.Data;
+import top.codings.websiphon.test.website.WebModule;
 
 public interface CrawlManager {
     @RequestLine("GET /crawl/task")
@@ -16,7 +17,7 @@ public interface CrawlManager {
     class CrawlTask {
         private int code;
         private String message;
-        private Object data;
+        private WebModule data;
     }
 
     static CrawlManager create() {
