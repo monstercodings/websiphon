@@ -94,7 +94,7 @@ public class ExtractUrlPlugin implements WebPlugin {
                         return;
                     }
                     String href = element.attr("href");
-                    if (StringUtils.isBlank(href) || href.startsWith("java") || href.startsWith("#")) {
+                    if (StringUtils.isBlank(href) || href.startsWith("javascript") || href.startsWith("#")) {
                         return;
                     }
                     String url = HttpOperator.recombineLink(href, request.getUrl());
@@ -138,6 +138,7 @@ public class ExtractUrlPlugin implements WebPlugin {
                 urls.forEach(url -> {
                     try {
                         WebRequest clone = (WebRequest) BeanUtils.cloneBean(request);
+                        clone.setResponse(null);
                         clone.setUrl(url);
                         clone.setMethod(request.getMethod());
                         clone.setProxy(request.getProxy() == Proxy.NO_PROXY ? request.getProxy() : null);

@@ -34,6 +34,7 @@ public class SpiderDemo {
         CrawlManager crawlManager = CrawlManager.create();
         UrlFilterPlugin urlFilterPlugin = new UrlFilterPlugin();
         BasicAsyncWebRequester requester = new BasicAsyncWebRequester();
+        requester.setRedirect(true);
 //        requester.setIgnoreHttpError(true);
         // 构建爬虫对象
         ProxyManager manager = new BasicProxyManager()
@@ -58,7 +59,7 @@ public class SpiderDemo {
                         fireProcess(request, context);
                     }
                 })
-                .addLast(new ExtractUrlPlugin(true, false))
+                .addLast(new ExtractUrlPlugin(false, false))
                 .addLast(urlFilterPlugin)
                 .addListener(new WebAsyncEventListener<WebNetworkExceptionEvent>() {
                     @Override
@@ -68,7 +69,7 @@ public class SpiderDemo {
                 .queueMonitor((ctx, requestHolder, force) -> {
                     log.debug("采集完成");
                     urlFilterPlugin.clear();
-                    CrawlManager.CrawlTask task;
+                    /*CrawlManager.CrawlTask task;
                     do {
                         log.debug("尝试拉取爬虫任务");
                         task = crawlManager.getTask();
@@ -80,7 +81,7 @@ public class SpiderDemo {
                     request.setTimeout(6000);
                     // 将任务推送给爬虫
                     PushResult pushResult = ctx.getCrawler().push(request);
-                    log.debug("推送结果 -> {}", pushResult.value);
+                    log.debug("推送结果 -> {}", pushResult.value);*/
                 })
 //                .enableProxy(manager)
                 // 设置网络请求最大并发数
@@ -92,16 +93,16 @@ public class SpiderDemo {
         crawler.getContext().setId("测试爬虫");
         // 启动爬虫(异步)
         crawler.start();
-        CrawlManager.CrawlTask task;
+        /*CrawlManager.CrawlTask task;
         do {
             log.debug("尝试拉取爬虫任务");
             task = crawlManager.getTask();
-        } while (task.getCode() != 0);
+        } while (task.getCode() != 0);*/
 
         // 构建爬取任务
         WebRequest request = new WebRequest();
         // 设置需要爬取的入口URL
-        request.setUrl(task.getData().getHomepage());
+        request.setUrl("http://www.ybxww.com/news/yaowen/");
 //        request.setUrl("http://2000019.ip138.com/");
         // 使用扩散插件的情况下，最大的扩散深度
         request.setMaxDepth(1);

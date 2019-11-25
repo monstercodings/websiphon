@@ -3,13 +3,13 @@
 [![Build Status](https://travis-ci.org/monstercodings/websiphon.svg?branch=master)](https://travis-ci.org/monstercodings/websiphon)
 ![](https://img.shields.io/badge/language-java-blue.svg)
 
-### Maven坐标
+### Maven坐标(尚未发布)
 
 ```
 <dependency>
     <groupId>top.codings</groupId>
     <artifactId>websiphon</artifactId>
-    <version>0.0.9</version>
+    <version>0.0.11</version>
 </dependency>
 ```
 
