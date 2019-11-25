@@ -85,9 +85,9 @@ public class SpiderDemo {
                 })
 //                .enableProxy(manager)
                 // 设置网络请求最大并发数
-                .setNetworkThread(5)
+                .setNetworkThread(50)
                 // 设置最大处理线程数
-                .setParseThread(10)
+                .setParseThread(20)
                 .build();
         // 设置爬虫的名字(必须)
         crawler.getContext().setId("测试爬虫");

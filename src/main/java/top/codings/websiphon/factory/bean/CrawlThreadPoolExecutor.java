@@ -20,7 +20,7 @@ public class CrawlThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     public CrawlThreadPoolExecutor(int corePoolSize, String poolName) {
-        this(corePoolSize, corePoolSize, 60, TimeUnit.SECONDS, new LinkedTransferQueue<>(), new CrawlThreadFactory(poolName));
-
+//        this(corePoolSize, corePoolSize, 60, TimeUnit.SECONDS, new SynchronousQueue<>(), new CrawlThreadFactory(poolName));
+        this(0, Integer.MAX_VALUE, 60, TimeUnit.SECONDS, new SynchronousQueue<>(), new CrawlThreadFactory(poolName));
     }
 }

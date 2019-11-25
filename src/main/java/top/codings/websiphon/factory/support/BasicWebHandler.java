@@ -1,5 +1,9 @@
 package top.codings.websiphon.factory.support;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.PushResult;
 import top.codings.websiphon.bean.RateResult;
 import top.codings.websiphon.bean.WebRequest;
@@ -14,7 +18,6 @@ import top.codings.websiphon.core.context.event.sync.WebAfterParseEvent;
 import top.codings.websiphon.core.context.event.sync.WebBeforeParseEvent;
 import top.codings.websiphon.core.context.event.sync.WebBeforeRequestEvent;
 import top.codings.websiphon.core.parser.WebParser;
-import top.codings.websiphon.core.pipeline.BasicReadWritePipeline;
 import top.codings.websiphon.core.pipeline.ReadWritePipeline;
 import top.codings.websiphon.core.proxy.ProxyPool;
 import top.codings.websiphon.core.proxy.manager.ProxyManager;
@@ -24,22 +27,16 @@ import top.codings.websiphon.exception.WebNetworkException;
 import top.codings.websiphon.factory.bean.CrawlThreadPoolExecutor;
 import top.codings.websiphon.factory.bean.WebHandler;
 import top.codings.websiphon.operation.QueueMonitor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class BasicWebHandler implements WebHandler {
-    //    private LinkedTransferQueue<WebRequest> responseList = new LinkedTransferQueue<>();
+    private LinkedTransferQueue<RespRunner> respQueue = new LinkedTransferQueue<>();
     @Getter
     private QueueMonitor queueMonitor = new QueueMonitor();
     @Getter
@@ -52,12 +49,12 @@ public class BasicWebHandler implements WebHandler {
     @Setter
     private ReadWritePipeline readWritePipeline;
     private Semaphore networkToken;
-    //    private Semaphore parseToken;
+    private Semaphore parseToken;
     @Getter
     private Map<Class<? extends WebAsyncEvent>, WebAsyncEventListener> asyncMap = new HashMap<>();
     @Getter
     private Map<Class<? extends WebSyncEvent>, WebSyncEventListener> syncMap = new HashMap<>();
-//    private Thread runThread;
+    private Thread runThread;
     /**
      * 异步事件池
      */
@@ -159,44 +156,7 @@ public class BasicWebHandler implements WebHandler {
             postAsyncEvent(request.getResponse().getErrorEvent());
             return;
         }
-        /*try {
-            parseToken.acquire();
-        } catch (InterruptedException e) {
-            queueMonitor.decrement(request);
-            return;
-        }*/
-//        responseList.offer(request);
-//        parseToken.release();
-
-        parseExecutor.submit(() -> {
-            try {
-                WebBeforeParseEvent event = new WebBeforeParseEvent();
-                event.setContext(request.context());
-                event.setRequest(request);
-                postSyncEvent(event);
-                webParser.parse(request, request.context());
-                request.setEndAt(System.currentTimeMillis());
-                rateResult.addSuccess(request.getEndAt() - request.getBeginAt());
-                WebAfterParseEvent afterParseEvent = new WebAfterParseEvent();
-                afterParseEvent.setContext(request.context());
-                afterParseEvent.setRequest(request);
-                postSyncEvent(afterParseEvent);
-            } catch (WebException e) {
-                WebParseExceptionEvent exceptionEvent = new WebParseExceptionEvent();
-                exceptionEvent.setContext(request.context());
-                exceptionEvent.setRequest(request);
-                exceptionEvent.setThrowable(e);
-                postAsyncEvent(exceptionEvent);
-            } catch (Exception e) {
-                AllExceptionEvent exceptionEvent = new AllExceptionEvent();
-                exceptionEvent.setContext(request.context());
-                exceptionEvent.setThrowable(e);
-                postAsyncEvent(exceptionEvent);
-            } finally {
-                queueMonitor.decrement(request);
-//                            parseToken.release();
-            }
-        });
+        respQueue.offer(new RespRunner(request, parseToken));
     }
 
     @Override
@@ -209,52 +169,25 @@ public class BasicWebHandler implements WebHandler {
         proxyPool.init();
         rateResult.start();
         networkToken = new Semaphore(networkCount);
-//        parseToken = new Semaphore(crawlerContext.getParseThreadSize());
+        parseToken = new Semaphore(parseCount);
         parseExecutor = new CrawlThreadPoolExecutor(parseCount, "crawler-parse");
-        /*runThread = new Thread(() -> {
+        runThread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    WebRequest webRequest = responseList.take();
-//                    parseToken.acquire();
-                    parseExecutor.submit(() -> {
-                        try {
-                            WebBeforeParseEvent event = new WebBeforeParseEvent();
-                            event.setContext(crawlerContext);
-                            event.setRequest(webRequest);
-                            postSyncEvent(event);
-                            webParser.parse(webRequest, crawlerContext);
-                            webRequest.setEndAt(System.currentTimeMillis());
-                            rateResult.addSuccess(webRequest.getEndAt() - webRequest.getBeginAt());
-                            WebAfterParseEvent afterParseEvent = new WebAfterParseEvent();
-                            afterParseEvent.setContext(crawlerContext);
-                            afterParseEvent.setRequest(webRequest);
-                            postSyncEvent(afterParseEvent);
-                        } catch (WebException e) {
-                            WebParseExceptionEvent exceptionEvent = new WebParseExceptionEvent();
-                            exceptionEvent.setContext(crawlerContext);
-                            exceptionEvent.setRequest(webRequest);
-                            exceptionEvent.setThrowable(e);
-                            postAsyncEvent(exceptionEvent);
-                        } catch (Exception e) {
-                            AllExceptionEvent exceptionEvent = new AllExceptionEvent();
-                            exceptionEvent.setContext(crawlerContext);
-                            exceptionEvent.setThrowable(e);
-                            postAsyncEvent(exceptionEvent);
-                        } finally {
-                            queueMonitor.decrement(webRequest);
-//                            parseToken.release();
-                        }
-                    });
+                    parseToken.acquire();
+                    parseExecutor.submit(respQueue.take());
                 } catch (InterruptedException e) {
                     break;
+                } catch (Exception e) {
+                    log.error("执行解析响应失败", e);
                 }
             }
-            log.warn("WebHandler执行终止");
+            log.info("WebHandler核心执行终止");
         });
-        runThread.setName("webHandler-run");
+        runThread.setName("webHandler");
         // 设置为守护线程
         runThread.setDaemon(true);
-        runThread.start();*/
+        runThread.start();
         queueMonitor.init();
     }
 
@@ -268,11 +201,11 @@ public class BasicWebHandler implements WebHandler {
                 WebErrorAsyncEvent webErrorAsyncEvent = (WebErrorAsyncEvent) event;
                 if (asyncMap.containsKey(AllExceptionEvent.class)) {
                     asyncEventExecutor.submit(() -> {
-                        AllExceptionEvent event1 = new AllExceptionEvent();
-                        event1.setThrowable(webErrorAsyncEvent.getThrowable());
-                        event1.setContext(webErrorAsyncEvent.getContext());
-                        event1.setRequest(webErrorAsyncEvent.getRequest());
-                        asyncMap.get(AllExceptionEvent.class).listen(event1);
+                        AllExceptionEvent allExceptionEvent = new AllExceptionEvent();
+                        allExceptionEvent.setThrowable(webErrorAsyncEvent.getThrowable());
+                        allExceptionEvent.setContext(webErrorAsyncEvent.getContext());
+                        allExceptionEvent.setRequest(webErrorAsyncEvent.getRequest());
+                        asyncMap.get(AllExceptionEvent.class).listen(allExceptionEvent);
                     });
                     return true;
                 } else {
@@ -313,6 +246,43 @@ public class BasicWebHandler implements WebHandler {
         parseExecutor.shutdownNow();
         if (webRequester != null) {
             webRequester.close();
+        }
+    }
+
+    @AllArgsConstructor
+    private class RespRunner implements Runnable {
+        private WebRequest request;
+        private Semaphore parseToken;
+
+        @Override
+        public void run() {
+            try {
+                WebBeforeParseEvent event = new WebBeforeParseEvent();
+                event.setContext(request.context());
+                event.setRequest(request);
+                postSyncEvent(event);
+                webParser.parse(request, request.context());
+                request.setEndAt(System.currentTimeMillis());
+                rateResult.addSuccess(request.getEndAt() - request.getBeginAt());
+                WebAfterParseEvent afterParseEvent = new WebAfterParseEvent();
+                afterParseEvent.setContext(request.context());
+                afterParseEvent.setRequest(request);
+                postSyncEvent(afterParseEvent);
+            } catch (WebException e) {
+                WebParseExceptionEvent exceptionEvent = new WebParseExceptionEvent();
+                exceptionEvent.setContext(request.context());
+                exceptionEvent.setRequest(request);
+                exceptionEvent.setThrowable(e);
+                postAsyncEvent(exceptionEvent);
+            } catch (Exception e) {
+                AllExceptionEvent exceptionEvent = new AllExceptionEvent();
+                exceptionEvent.setContext(request.context());
+                exceptionEvent.setThrowable(e);
+                postAsyncEvent(exceptionEvent);
+            } finally {
+                queueMonitor.decrement(request);
+                parseToken.release();
+            }
         }
     }
 }
