@@ -31,7 +31,7 @@ public class QueueMonitor {
 //        size.getAndIncrement();
         boolean add = requestHolder.add(request);
         if (!add) {
-            WebMonitorExceptionEvent event = (WebMonitorExceptionEvent) new WebMonitorExceptionEvent().setContext(context).setRequest(request);
+            WebMonitorExceptionEvent event = new WebMonitorExceptionEvent(request);
             event.setThrowable(new IllegalMonitorStateException("新增的队列监视对象已存在"));
             event.setSize(requestHolder.size());
             context.postAsyncEvent(event);
@@ -49,7 +49,7 @@ public class QueueMonitor {
         boolean remove = requestHolder.remove(request);
         int size = requestHolder.size();
         if (!remove) {
-            WebMonitorExceptionEvent event = (WebMonitorExceptionEvent) new WebMonitorExceptionEvent().setContext(context).setRequest(request);
+            WebMonitorExceptionEvent event = new WebMonitorExceptionEvent(request);
             event.setThrowable(new IllegalMonitorStateException("移除的队列监视对象不存在"));
             event.setSize(size);
             context.postAsyncEvent(event);

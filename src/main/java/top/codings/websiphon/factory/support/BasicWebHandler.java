@@ -105,20 +105,17 @@ public class BasicWebHandler implements WebHandler {
             return;
         } catch (WebNetworkException e) {
             WebNetworkExceptionEvent exceptionEvent = new WebNetworkExceptionEvent();
-            exceptionEvent.setContext(context);
             exceptionEvent.setRequest(request);
             postAsyncEvent(exceptionEvent);
         } catch (WebException e) {
             WebExceptionEvent event = new WebExceptionEvent();
             event.setRequest(request);
-            event.setContext(context);
             event.setThrowable(e);
             postAsyncEvent(event);
         } catch (Exception e) {
             log.error("警告!执行网络请求发生未知异常，该异常不应该出现，请仔细排查相关代码");
             WebExceptionEvent event = new WebExceptionEvent();
             event.setRequest(request);
-            event.setContext(context);
             event.setThrowable(e);
             postAsyncEvent(event);
         }
@@ -203,7 +200,7 @@ public class BasicWebHandler implements WebHandler {
                     asyncEventExecutor.submit(() -> {
                         AllExceptionEvent allExceptionEvent = new AllExceptionEvent();
                         allExceptionEvent.setThrowable(webErrorAsyncEvent.getThrowable());
-                        allExceptionEvent.setContext(webErrorAsyncEvent.getContext());
+//                        allExceptionEvent.setContext(webErrorAsyncEvent.getContext());
                         allExceptionEvent.setRequest(webErrorAsyncEvent.getRequest());
                         asyncMap.get(AllExceptionEvent.class).listen(allExceptionEvent);
                     });
@@ -270,13 +267,12 @@ public class BasicWebHandler implements WebHandler {
                 postSyncEvent(afterParseEvent);
             } catch (WebException e) {
                 WebParseExceptionEvent exceptionEvent = new WebParseExceptionEvent();
-                exceptionEvent.setContext(request.context());
                 exceptionEvent.setRequest(request);
                 exceptionEvent.setThrowable(e);
                 postAsyncEvent(exceptionEvent);
             } catch (Exception e) {
                 AllExceptionEvent exceptionEvent = new AllExceptionEvent();
-                exceptionEvent.setContext(request.context());
+                exceptionEvent.setRequest(request);
                 exceptionEvent.setThrowable(e);
                 postAsyncEvent(exceptionEvent);
             } finally {

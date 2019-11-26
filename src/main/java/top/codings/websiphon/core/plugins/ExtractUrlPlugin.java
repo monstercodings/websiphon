@@ -161,7 +161,6 @@ public class ExtractUrlPlugin implements WebPlugin {
                     } catch (Exception e) {
                         WebExceptionEvent event = new WebExceptionEvent();
                         event.setThrowable(e);
-                        event.setContext(context);
                         event.setRequest(request);
                         context.postAsyncEvent(event);
                     }

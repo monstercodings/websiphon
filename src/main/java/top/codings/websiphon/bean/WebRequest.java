@@ -1,19 +1,18 @@
 package top.codings.websiphon.bean;
 
-import top.codings.websiphon.core.context.CrawlerContext;
-import top.codings.websiphon.util.HeadersUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import top.codings.websiphon.core.context.CrawlerContext;
+import top.codings.websiphon.util.HeadersUtils;
 
 import java.net.Proxy;
 import java.util.Map;
 
 @NoArgsConstructor
 public class WebRequest {
-//    protected String serialId = UUID.randomUUID().toString().replace("-", "");
-@Getter
-@Setter
+    @Getter
+    @Setter
     protected String url;
     @Getter
     @Setter
@@ -61,6 +60,14 @@ public class WebRequest {
     public CrawlerContext context() {
         return context;
     }
+
+    /**
+     * 完成一次请求后由请求器主动调用
+     */
+    public void finish() {
+        context.finishRequest(this);
+    }
+
     public static WebRequest simple(String url) {
         return new WebRequest(url, HeadersUtils.getHeaders(), 30 * 1000);
     }

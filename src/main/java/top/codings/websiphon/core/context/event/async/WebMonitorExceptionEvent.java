@@ -8,4 +8,8 @@ import top.codings.websiphon.bean.WebRequest;
 @Setter
 public class WebMonitorExceptionEvent<T extends WebRequest> extends WebExceptionEvent<T> {
     protected int size;
+
+    public WebMonitorExceptionEvent(T webRequest) {
+        this.request = webRequest;
+    }
 }

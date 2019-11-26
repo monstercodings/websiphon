@@ -117,7 +117,7 @@ public class Cdp4jWebRequester<W extends WebRequest> implements WebRequester<W> 
             if (StringUtils.isBlank(content) && throwable != null) {
                 WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
                 event.setThrowable(throwable);
-                event.setContext(crawlerContext);
+//                event.setContext(crawlerContext);
                 event.setRequest(request);
                 response.setErrorEvent(event);
                 crawlerContext.finishRequest(request);

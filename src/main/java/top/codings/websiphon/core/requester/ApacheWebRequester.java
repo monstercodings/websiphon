@@ -42,6 +42,12 @@ import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * 已作废
+ * 请使用{@link BasicAsyncWebRequester}代替
+ * @param <W>
+ */
+@Deprecated
 @Slf4j
 public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W> {
     @Getter
@@ -198,7 +204,6 @@ public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W>
             WebResponse response = new WebResponse();
             w.setResponse(response);
             event.setThrowable(e);
-            event.setContext(crawlerContext);
             event.setRequest(w);
             response.setErrorEvent(event);
             crawlerContext.finishRequest(w);
@@ -261,7 +266,6 @@ public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W>
                         } catch (Exception e) {
                             WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
                             event.setThrowable(e);
-                            event.setContext(crawlerContext);
                             event.setRequest(webRequest);
                             webRequest.getResponse().setErrorEvent(event);
                         } finally {
@@ -280,7 +284,6 @@ public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W>
                             webRequest.setResponse(new WebResponse());
                             WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
                             event.setThrowable(throwable);
-                            event.setContext(crawlerContext);
                             event.setRequest(webRequest);
                             webRequest.getResponse().setErrorEvent(event);
                         } finally {
@@ -295,7 +298,6 @@ public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W>
                             webRequest.setResponse(new WebResponse());
                             WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
                             event.setThrowable(new CancellationException("请求被强制取消"));
-                            event.setContext(crawlerContext);
                             event.setRequest(webRequest);
                             webRequest.getResponse().setErrorEvent(event);
                         } finally {

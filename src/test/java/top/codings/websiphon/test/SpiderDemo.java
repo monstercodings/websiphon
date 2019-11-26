@@ -1,31 +1,23 @@
 package top.codings.websiphon.test;
 
-import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
 import org.junit.jupiter.api.Test;
-import top.codings.websiphon.bean.PushResult;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.Crawler;
 import top.codings.websiphon.core.context.CrawlerContext;
-import top.codings.websiphon.core.context.event.WebSyncEvent;
 import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
 import top.codings.websiphon.core.context.event.listener.WebAsyncEventListener;
-import top.codings.websiphon.core.context.event.listener.WebSyncEventListener;
-import top.codings.websiphon.core.context.event.sync.WebLinkEvent;
 import top.codings.websiphon.core.plugins.ExtractUrlPlugin;
 import top.codings.websiphon.core.plugins.UrlFilterPlugin;
 import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.core.proxy.bean.ProxyExtension;
 import top.codings.websiphon.core.proxy.manager.BasicProxyManager;
 import top.codings.websiphon.core.proxy.manager.ProxyManager;
-import top.codings.websiphon.core.requester.BasicAsyncWebRequester;
+import top.codings.websiphon.core.requester.SeimiAgentWebRequest;
+import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.support.CrawlerBuilder;
-import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.exception.WebParseException;
 import top.codings.websiphon.test.feign.CrawlManager;
-
-import java.util.HashMap;
 
 @Slf4j
 public class SpiderDemo {
@@ -33,8 +25,7 @@ public class SpiderDemo {
     public void test() throws InterruptedException {
         CrawlManager crawlManager = CrawlManager.create();
         UrlFilterPlugin urlFilterPlugin = new UrlFilterPlugin();
-        BasicAsyncWebRequester requester = new BasicAsyncWebRequester();
-        requester.setRedirect(true);
+        WebRequester requester = new SeimiAgentWebRequest("http://121.201.107.77:51000");
 //        requester.setIgnoreHttpError(true);
         // 构建爬虫对象
         ProxyManager manager = new BasicProxyManager()
@@ -64,6 +55,7 @@ public class SpiderDemo {
                 .addListener(new WebAsyncEventListener<WebNetworkExceptionEvent>() {
                     @Override
                     public void listen(WebNetworkExceptionEvent event) {
+                        log.error("请求网络异常", event.getThrowable());
                     }
                 })
                 .queueMonitor((ctx, requestHolder, force) -> {
@@ -85,7 +77,7 @@ public class SpiderDemo {
                 })
 //                .enableProxy(manager)
                 // 设置网络请求最大并发数
-                .setNetworkThread(50)
+                .setNetworkThread(10)
                 // 设置最大处理线程数
                 .setParseThread(20)
                 .build();
@@ -102,12 +94,12 @@ public class SpiderDemo {
         // 构建爬取任务
         WebRequest request = new WebRequest();
         // 设置需要爬取的入口URL
-        request.setUrl("http://www.ybxww.com/news/yaowen/");
+        request.setUrl("https://www.163.com/");
 //        request.setUrl("http://2000019.ip138.com/");
         // 使用扩散插件的情况下，最大的扩散深度
         request.setMaxDepth(1);
         // 设置超时
-        request.setTimeout(6000);
+        request.setTimeout(60000);
         // 将任务推送给爬虫
         crawler.push(request);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> crawler.close()));
