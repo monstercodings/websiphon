@@ -3,44 +3,65 @@ package top.codings.websiphon.bean;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Data
 @Slf4j
 public class RateResult {
-    private int second;
+    protected int second;
     /**
      * 总消费消息数量
      */
-    private AtomicLong totalMessage = new AtomicLong(0);
+    protected AtomicLong totalMessage = new AtomicLong(0);
 
     /**
      * 总消费QPS（无论成败）
      */
-    private volatile long everySecondMessage;
+    protected volatile long everySecondMessage;
     /**
      * 一条消息成功消费耗时
      */
-    private volatile double timeConsuming;
+    protected volatile double timeConsuming;
 
     /**
      * 请求成功总花费时间
      */
-    private AtomicLong successTotalTime = new AtomicLong(0);
+    protected AtomicLong successTotalTime = new AtomicLong(0);
 
     /**
      * 成功完成次数
      */
-    private AtomicLong successCount = new AtomicLong(0);
+    protected AtomicLong successCount = new AtomicLong(0);
 
 //    private Semaphore token;
 
     /**
      * 成功消费消息的QPS
      */
-    private volatile long everySecondCount;
+    protected volatile long everySecondCount;
 
-    private Thread thread;
+    protected Map<WebResponse.Result, AtomicLong> resultStat = new ConcurrentHashMap<>();
+
+    protected Thread thread;
+
+    public void incrementResult(WebResponse.Result result) {
+        if (result == null) {
+            return;
+        }
+        AtomicLong stat = resultStat.get(result);
+        if (null == stat) {
+            synchronized (resultStat) {
+                stat = resultStat.get(result);
+                if (null == stat) {
+                    stat = new AtomicLong();
+                    resultStat.put(result, stat);
+                }
+            }
+        }
+        stat.incrementAndGet();
+    }
 
     public void addSuccess(long time) {
         successTotalTime.addAndGet(time);

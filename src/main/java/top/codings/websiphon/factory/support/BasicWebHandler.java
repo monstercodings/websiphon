@@ -153,6 +153,7 @@ public class BasicWebHandler implements WebHandler {
             postAsyncEvent(request.getResponse().getErrorEvent());
             return;
         }
+        rateResult.incrementResult(request.getResponse().getResult());
         respQueue.offer(new RespRunner(request, parseToken));
     }
 
