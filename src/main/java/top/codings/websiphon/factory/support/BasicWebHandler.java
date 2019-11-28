@@ -134,6 +134,7 @@ public class BasicWebHandler implements WebHandler {
 
     @Override
     public void handleResponse(WebRequest request) {
+        rateResult.incrementResult(request);
         networkToken.release();
         /*if (readWritePipeline instanceof BasicReadWritePipeline) {
             ((BasicReadWritePipeline) readWritePipeline).eliminateForRequest(request);
@@ -153,7 +154,6 @@ public class BasicWebHandler implements WebHandler {
             postAsyncEvent(request.getResponse().getErrorEvent());
             return;
         }
-        rateResult.incrementResult(request.getResponse().getResult());
         respQueue.offer(new RespRunner(request, parseToken));
     }
 

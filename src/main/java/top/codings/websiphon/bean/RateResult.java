@@ -46,7 +46,15 @@ public class RateResult {
 
     protected Thread thread;
 
-    public void incrementResult(WebResponse.Result result) {
+    public void incrementResult(WebRequest webRequest) {
+        if (null == webRequest) {
+            return;
+        } else if (webRequest.getResponse() == null) {
+            return;
+        } else if (webRequest.getResponse().getResult() == null) {
+            return;
+        }
+        WebResponse.Result result = webRequest.getResponse().getResult();
         if (result == null) {
             return;
         }

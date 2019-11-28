@@ -389,7 +389,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
             try {
                 WebResponse webResponse = webRequest.getResponse();
                 if (null == webResponse) {
-                    crawlerContext.finishRequest(webRequest);
+                    webRequest.finish();
                     return;
                 }
                 fillResponseBody(httpResponse, webRequest);
@@ -407,7 +407,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
                 event.setRequest(webRequest);
                 webRequest.getResponse().setErrorEvent(event);
             } finally {
-                crawlerContext.finishRequest(webRequest);
+                webRequest.finish();
                 HttpClientUtils.closeQuietly(httpResponse);
             }
         }
@@ -429,7 +429,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
                 event.setRequest(webRequest);
                 webRequest.getResponse().setErrorEvent(event);
             } finally {
-                crawlerContext.finishRequest(webRequest);
+                webRequest.finish();
             }
         }
 
@@ -444,7 +444,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
                 event.setRequest(webRequest);
                 webRequest.getResponse().setErrorEvent(event);
             } finally {
-                crawlerContext.finishRequest(webRequest);
+                webRequest.finish();
             }
         }
     }

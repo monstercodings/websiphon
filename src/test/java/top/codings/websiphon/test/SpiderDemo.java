@@ -1,8 +1,11 @@
 package top.codings.websiphon.test;
 
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import top.codings.websiphon.bean.RateResult;
 import top.codings.websiphon.bean.WebRequest;
+import top.codings.websiphon.bean.WebResponse;
 import top.codings.websiphon.core.Crawler;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
@@ -13,11 +16,13 @@ import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.core.proxy.bean.ProxyExtension;
 import top.codings.websiphon.core.proxy.manager.BasicProxyManager;
 import top.codings.websiphon.core.proxy.manager.ProxyManager;
-import top.codings.websiphon.core.requester.SeimiAgentWebRequest;
-import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.support.CrawlerBuilder;
 import top.codings.websiphon.exception.WebParseException;
 import top.codings.websiphon.test.feign.CrawlManager;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 public class SpiderDemo {
@@ -25,13 +30,13 @@ public class SpiderDemo {
     public void test() throws InterruptedException {
         CrawlManager crawlManager = CrawlManager.create();
         UrlFilterPlugin urlFilterPlugin = new UrlFilterPlugin();
-        WebRequester requester = new SeimiAgentWebRequest("http://121.201.107.77:51000");
+//        WebRequester requester = new SeimiAgentWebRequest("http://121.201.107.77:51000");
 //        requester.setIgnoreHttpError(true);
         // 构建爬虫对象
         ProxyManager manager = new BasicProxyManager()
                 .addProxy(new ProxyExtension("127.0.0.1", 1080));
         Crawler crawler = CrawlerBuilder.create()
-                .addLast(requester)
+//                .addLast(requester)
                 // 配置文档处理器，用于解析返回的html并抽取你想要的信息
                 .addLast(new WebProcessorAdapter<WebRequest>() {
                     @Override
@@ -55,7 +60,7 @@ public class SpiderDemo {
                 .addListener(new WebAsyncEventListener<WebNetworkExceptionEvent>() {
                     @Override
                     public void listen(WebNetworkExceptionEvent event) {
-                        log.error("请求网络异常", event.getThrowable());
+//                        log.error("请求网络异常", event.getThrowable());
                     }
                 })
                 .queueMonitor((ctx, requestHolder, force) -> {
@@ -94,7 +99,7 @@ public class SpiderDemo {
         // 构建爬取任务
         WebRequest request = new WebRequest();
         // 设置需要爬取的入口URL
-        request.setUrl("https://www.163.com/");
+        request.setUrl("https://www.163.com");
 //        request.setUrl("http://2000019.ip138.com/");
         // 使用扩散插件的情况下，最大的扩散深度
         request.setMaxDepth(1);
@@ -103,6 +108,17 @@ public class SpiderDemo {
         // 将任务推送给爬虫
         crawler.push(request);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> crawler.close()));
-        Thread.currentThread().join();
+        RateResult rateResult = crawler.getContext().getRateResult();
+        StringBuilder stringBuilder = new StringBuilder();
+        while (true) {
+            TimeUnit.SECONDS.sleep(1);
+            stringBuilder.append("\n");
+            for (Map.Entry<WebResponse.Result, AtomicLong> entry : rateResult.getResultStat().entrySet()) {
+                stringBuilder.append(entry.getKey().getKey()).append(":").append(entry.getValue().get()).append("\n");
+            }
+            log.debug("\n{}", stringBuilder.toString());
+            stringBuilder.delete(0, stringBuilder.length());
+        }
+//        Thread.currentThread().join();
     }
 }
