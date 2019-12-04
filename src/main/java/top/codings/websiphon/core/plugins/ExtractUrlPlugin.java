@@ -79,93 +79,97 @@ public class ExtractUrlPlugin implements WebPlugin {
             if (request.getMaxDepth() > 0 && request.getDepth() >= request.getMaxDepth()) {
                 return result;
             }
+            if (request.getResponse() == null ||
+                    StringUtils.isBlank(request.getResponse().getContentType()) ||
+                    !request.getResponse().getContentType().startsWith("text")
+            ) {
+                return result;
+            }
             // 判断
-            if (request.getResponse().getContentType().startsWith("text")) {
-                Document document;
-                try {
-                    document = Jsoup.parse(request.getResponse().getHtml());
-                } catch (Exception e) {
-                    // TODO Jsoup解析失败
-                    return result;
+            Document document;
+            try {
+                document = Jsoup.parse(request.getResponse().getHtml());
+            } catch (Exception e) {
+                // TODO Jsoup解析失败
+                return result;
+            }
+            Collection<String> urls = new HashSet<>();
+            document.getElementsByTag("a").forEach(element -> {
+                if (!element.hasAttr("href")) {
+                    return;
                 }
-                Collection<String> urls = new HashSet<>();
-                document.getElementsByTag("a").forEach(element -> {
-                    if (!element.hasAttr("href")) {
-                        return;
-                    }
-                    String href = element.attr("href");
-                    if (StringUtils.isBlank(href) || href.startsWith("javascript") || href.startsWith("#")) {
-                        return;
-                    }
-                    String url = HttpOperator.recombineLink(href, request.getUrl());
-                    if (StringUtils.isBlank(url) || url.equals(request.getUrl()) || !HttpOperator.urlLegalVerify(url)) {
-                        return;
-                    }
-                    url = url.trim();
-                    if (sameDomain) {
-                        Matcher oldMatcher = rawFilterPattern.matcher(request.getUrl());
-                        Matcher newMatcher = rawFilterPattern.matcher(url);
-                        if (oldMatcher.find() && newMatcher.find()) {
-                            String oldDomain = oldMatcher.group(2);
-                            String newDomain = newMatcher.group(2);
-                            if (!oldDomain.equals(newDomain)) {
-                                return;
-                            }
-                        }
-                    }
-                    if (!allowHomepage) {
-                        Matcher matcher = rawFilterPattern.matcher(url);
-                        if (!matcher.find()) {
-                            return;
-                        }
-                        String path = matcher.group(4);
-                        if (StringUtils.isBlank(path) || path.equals("/")) {
+                String href = element.attr("href");
+                if (StringUtils.isBlank(href) || href.startsWith("javascript") || href.startsWith("#")) {
+                    return;
+                }
+                String url = HttpOperator.recombineLink(href, request.getUrl());
+                if (StringUtils.isBlank(url) || url.equals(request.getUrl()) || !HttpOperator.urlLegalVerify(url)) {
+                    return;
+                }
+                url = url.trim();
+                if (sameDomain) {
+                    Matcher oldMatcher = rawFilterPattern.matcher(request.getUrl());
+                    Matcher newMatcher = rawFilterPattern.matcher(url);
+                    if (oldMatcher.find() && newMatcher.find()) {
+                        String oldDomain = oldMatcher.group(2);
+                        String newDomain = newMatcher.group(2);
+                        if (!oldDomain.equals(newDomain)) {
                             return;
                         }
                     }
-                    Matcher matcher = filterPattern.matcher(url);
+                }
+                if (!allowHomepage) {
+                    Matcher matcher = rawFilterPattern.matcher(url);
                     if (!matcher.find()) {
                         return;
                     }
-                    if (filter == null) {
-                        urls.add(url);
-                    } else if (filter.test(url)) {
-                        urls.add(url);
+                    String path = matcher.group(4);
+                    if (StringUtils.isBlank(path) || path.equals("/")) {
+                        return;
                     }
-                });
-                BasicCrawlerContext context = (BasicCrawlerContext) params[1];
+                }
+                Matcher matcher = filterPattern.matcher(url);
+                if (!matcher.find()) {
+                    return;
+                }
+                if (filter == null) {
+                    urls.add(url);
+                } else if (filter.test(url)) {
+                    urls.add(url);
+                }
+            });
+            BasicCrawlerContext context = (BasicCrawlerContext) params[1];
 //                log.debug("扩散总数 -> {}", urls.size());
-                urls.forEach(url -> {
-                    try {
-                        WebRequest clone = (WebRequest) BeanUtils.cloneBean(request);
-                        clone.setResponse(null);
-                        clone.setUrl(url);
-                        clone.setMethod(request.getMethod());
-                        clone.setProxy(request.getProxy() == Proxy.NO_PROXY ? request.getProxy() : null);
-                        clone.setHeaders(request.getHeaders());
-                        clone.setTimeout(request.getTimeout());
-                        clone.setDepth((short) (request.getDepth() + 1));
-                        clone.setMaxDepth(request.getMaxDepth());
-                        WebLinkEvent event = new WebLinkEvent();
-                        event.setContext(context);
-                        event.setRequest(request);
-                        event.setNewRequest(clone);
-                        if (!context.postSyncEvent(event)) {
-                            PushResult pushResult;
-                            if ((pushResult = context.getCrawler().push(event.getNewRequest())) != PushResult.SUCCESS) {
-                                if (pushResult != PushResult.URL_REPEAT) {
-                                    log.warn("推送扩散链接给爬虫失败 -> {}", pushResult.value);
-                                }
+            urls.forEach(url -> {
+                try {
+                    WebRequest clone = (WebRequest) BeanUtils.cloneBean(request);
+                    clone.setResponse(null);
+                    clone.setUrl(url);
+                    clone.setMethod(request.getMethod());
+                    clone.setProxy(request.getProxy() == Proxy.NO_PROXY ? request.getProxy() : null);
+                    clone.setHeaders(request.getHeaders());
+                    clone.setTimeout(request.getTimeout());
+                    clone.setDepth((short) (request.getDepth() + 1));
+                    clone.setMaxDepth(request.getMaxDepth());
+                    WebLinkEvent event = new WebLinkEvent();
+                    event.setContext(context);
+                    event.setRequest(request);
+                    event.setNewRequest(clone);
+                    if (!context.postSyncEvent(event)) {
+                        PushResult pushResult;
+                        if ((pushResult = context.getCrawler().push(event.getNewRequest())) != PushResult.SUCCESS) {
+                            if (pushResult != PushResult.URL_REPEAT) {
+                                log.warn("推送扩散链接给爬虫失败 -> {}", pushResult.value);
                             }
                         }
-                    } catch (Exception e) {
-                        WebExceptionEvent event = new WebExceptionEvent();
-                        event.setThrowable(e);
-                        event.setRequest(request);
-                        context.postAsyncEvent(event);
                     }
-                });
-            }
+                } catch (Exception e) {
+                    WebExceptionEvent event = new WebExceptionEvent();
+                    event.setThrowable(e);
+                    event.setRequest(request);
+                    context.postAsyncEvent(event);
+                }
+            });
         }
         return result;
     }
