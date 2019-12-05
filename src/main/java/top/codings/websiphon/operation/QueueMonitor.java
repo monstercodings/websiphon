@@ -61,6 +61,8 @@ public class QueueMonitor {
             log.trace("队列任务已全部执行完毕");
             if (null != monitor) {
                 ((BasicCrawlerContext) context).getWebHandler().getAsyncEventExecutor().submit(() -> monitor.handle(context, requestHolder, false));
+            } else {
+                log.trace("监视器为空，无触发任务");
             }
         } else if (size < 0) {
             log.error("队列任务统计发生异常[重复计数] -> 当前[{}] | {}", requestHolder.size(), request.getUrl());

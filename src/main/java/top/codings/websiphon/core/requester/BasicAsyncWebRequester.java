@@ -185,6 +185,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
     @Override
     public void execute(WebRequest webRequest) throws WebNetworkException {
         try {
+            size.incrementAndGet();
             HttpRequestBase httpRequest;
             httpRequest = initMethod(webRequest);
             initHeaders(webRequest, httpRequest);
@@ -194,7 +195,6 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
             initConfig(webRequest, httpRequest);
             HttpClientContext context = HttpClientContext.create();
             context.setAttribute(WebRequest.class.getName(), webRequest);
-            size.incrementAndGet();
             httpAsyncClient.execute(
                     httpRequest,
                     context,
