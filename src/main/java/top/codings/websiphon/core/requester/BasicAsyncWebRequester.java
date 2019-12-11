@@ -90,7 +90,7 @@ public class BasicAsyncWebRequester implements WebRequester<WebRequest> {
                     .build();*/
 
             IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                    .setBacklogSize(10240)
+//                    .setBacklogSize(10240)
                     .setSoTimeout(30000)
                     .setTcpNoDelay(true)
                     .setIoThreadCount(ioThreadCount)
