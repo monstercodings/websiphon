@@ -110,7 +110,7 @@ public class SpiderDemo {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> crawler.close()));
         RateResult rateResult = crawler.getContext().getRateResult();
         StringBuilder stringBuilder = new StringBuilder();
-        while (true) {
+        /*while (true) {
             TimeUnit.SECONDS.sleep(1);
             stringBuilder.append("\n");
             for (Map.Entry<WebResponse.Result, AtomicLong> entry : rateResult.getResultStat().entrySet()) {
@@ -118,7 +118,7 @@ public class SpiderDemo {
             }
             log.debug("\n{}", stringBuilder.toString());
             stringBuilder.delete(0, stringBuilder.length());
-        }
+        }*/
 //        Thread.currentThread().join();
     }
 }

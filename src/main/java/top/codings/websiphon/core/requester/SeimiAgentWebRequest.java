@@ -82,7 +82,7 @@ public class SeimiAgentWebRequest implements WebRequester<WebRequest> {
                                         } catch (Exception e) {
                                             log.error("发生系统级的异常", e);
                                         } finally {
-                                            webRequest.finish();
+                                            webRequest.succeed();
                                             channelHandlerContext.close();
                                         }
                                     }

@@ -12,26 +12,14 @@ import java.util.Map;
 @Setter
 public class WebResponse {
     protected String url;
-    //    private Document document;
     protected JSON json;
     protected String html;
     protected byte[] bytes;
-    //    private MediaType contentType;
     protected String contentType;
     protected Result result;
-    protected WebAsyncEvent errorEvent;
     protected Map<String, String> headers = new HashMap<>();
-    protected int statusCode;
     protected boolean redirect = false;
     protected String redirectUrl;
-
-    /*@Deprecated
-    public Document getDocument() {
-        if (StringUtils.isNotBlank(html)) {
-            return Jsoup.parse(html);
-        }
-        return null;
-    }*/
 
     public enum Result {
         SUCCESS(0, "请求成功"),

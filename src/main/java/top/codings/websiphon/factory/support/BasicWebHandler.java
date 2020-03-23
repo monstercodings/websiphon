@@ -132,16 +132,13 @@ public class BasicWebHandler implements WebHandler {
         return result;
     }
 
-    @Override
-    public void handleResponse(WebRequest request) {
-        rateResult.incrementResult(request);
-        networkToken.release();
+    public void handleSuccessd(WebRequest request) {
         /*if (readWritePipeline instanceof BasicReadWritePipeline) {
             ((BasicReadWritePipeline) readWritePipeline).eliminateForRequest(request);
-        }*/
-        WebResponse response = request.getResponse();
+        }
+        WebResponse response = request.response();
         if (request == null) {
-//            log.warn("任务尚未进行 -> {}", request.getUrl());
+            log.warn("任务尚未进行 -> {}", request.getUrl());
             return;
         } else if (response == null) {
             queueMonitor.decrement(request);
@@ -153,8 +150,28 @@ public class BasicWebHandler implements WebHandler {
             queueMonitor.decrement(request);
             postAsyncEvent(request.getResponse().getErrorEvent());
             return;
-        }
+        }*/
         respQueue.offer(new RespRunner(request, parseToken));
+    }
+
+    public void handleFailed(WebErrorAsyncEvent event) {
+        WebRequest request = event.getRequest();
+        queueMonitor.decrement(request);
+        postAsyncEvent(event);
+    }
+
+    @Override
+    public void doOnFinished(Object data) {
+        networkToken.release();
+        if (data instanceof WebRequest) {
+            rateResult.incrementResult((WebRequest) data);
+            handleSuccessd((WebRequest) data);
+        } else if (data instanceof WebErrorAsyncEvent) {
+            rateResult.incrementResult(((WebErrorAsyncEvent) data).getRequest());
+            handleFailed((WebErrorAsyncEvent) data);
+        } else {
+            throw new IllegalArgumentException("处理参数只能为WebRequest或WebErrorAsyncEvent的子类");
+        }
     }
 
     @Override

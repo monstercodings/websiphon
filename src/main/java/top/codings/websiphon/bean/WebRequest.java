@@ -1,17 +1,19 @@
 package top.codings.websiphon.bean;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import top.codings.websiphon.core.context.CrawlerContext;
-import top.codings.websiphon.util.HeadersUtils;
-
-import java.net.Proxy;
 import java.util.Map;
 
-@NoArgsConstructor
-public class WebRequest {
-    @Getter
+public interface WebRequest {
+    String uri();
+
+    Method method();
+
+    Object body();
+
+    Map<String, String> headers();
+
+    WebResponse response();
+
+    /*@Getter
     @Setter
     protected String url;
     @Getter
@@ -46,6 +48,9 @@ public class WebRequest {
     @Getter
     @Setter
     protected long endAt;
+    @Getter
+    @Setter
+    protected String charset;
 
     public WebRequest(String url, Map<String, String> headers, int timeout) {
         this.url = url;
@@ -59,20 +64,20 @@ public class WebRequest {
 
     public CrawlerContext context() {
         return context;
-    }
+    }*/
 
     /**
      * 完成一次请求后由请求器主动调用
      */
-    public void finish() {
-        context.finishRequest(this);
-    }
+    void succeed();
 
-    public static WebRequest simple(String url) {
+    void failed(Throwable throwable);
+
+    /*public static WebRequest simple(String url) {
         return new WebRequest(url, HeadersUtils.getHeaders(), 30 * 1000);
-    }
+    }*/
 
-    public enum Method {
+    enum Method {
         GET(),
         POST(),
         PUT(),
