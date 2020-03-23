@@ -4,10 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import top.codings.websiphon.bean.PushResult;
-import top.codings.websiphon.bean.RateResult;
-import top.codings.websiphon.bean.WebRequest;
-import top.codings.websiphon.bean.WebResponse;
+import top.codings.websiphon.bean.*;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
 import top.codings.websiphon.core.context.event.WebSyncEvent;
@@ -94,12 +91,15 @@ public class BasicWebHandler implements WebHandler {
         // TODO 校验URL正确性
         CrawlerContext context = request.context();
         try {
-            request.setProxy(Optional.ofNullable(request.getProxy()).orElse(proxyPool.select()));
+            if (request instanceof BasicWebRequest) {
+                BasicWebRequest basicWebRequest = (BasicWebRequest) request;
+                basicWebRequest.setProxy(Optional.ofNullable(basicWebRequest.getProxy()).orElse(proxyPool.select()));
+                basicWebRequest.setBeginAt(System.currentTimeMillis());
+            }
             WebBeforeRequestEvent event = new WebBeforeRequestEvent();
             event.setContext(context);
             event.setRequest(request);
             postSyncEvent(event);
-            request.setBeginAt(System.currentTimeMillis());
             webRequester.execute(request);
             rateResult.addTotal();
             return;
@@ -277,8 +277,11 @@ public class BasicWebHandler implements WebHandler {
                 event.setRequest(request);
                 postSyncEvent(event);
                 webParser.parse(request, request.context());
-                request.setEndAt(System.currentTimeMillis());
-                rateResult.addSuccess(request.getEndAt() - request.getBeginAt());
+                if (request instanceof BasicWebRequest) {
+                    ((BasicWebRequest) request).setEndAt(System.currentTimeMillis());
+
+                }
+//                rateResult.addSuccess(request.getEndAt() - request.getBeginAt());
                 WebAfterParseEvent afterParseEvent = new WebAfterParseEvent();
                 afterParseEvent.setContext(request.context());
                 afterParseEvent.setRequest(request);

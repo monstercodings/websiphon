@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.ssl.SSLContextBuilder;
+import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.exception.WebNetworkException;
 import top.codings.websiphon.util.HttpOperator;
@@ -45,7 +46,10 @@ public class SuperWebRequester implements WebRequester {
         boolean proxy = true;
         String proxyIp = null;
         int proxyPort = 0;
-        Proxy sysProxy = webRequest.getProxy();
+        Proxy sysProxy = null;
+        if (webRequest instanceof BasicWebRequest) {
+            sysProxy = ((BasicWebRequest) webRequest).getProxy();
+        }
         if (sysProxy == null || sysProxy == Proxy.NO_PROXY) {
             proxy = false;
         } else {
@@ -74,7 +78,8 @@ public class SuperWebRequester implements WebRequester {
                                     protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpResponse fullHttpResponse) throws Exception {
                                         if (fullHttpResponse.decoderResult().isFailure()) {
                                             // TODO 失败处理
-                                            log.debug("请求失败");
+                                            channelHandlerContext.close();
+                                            webRequest.failed(fullHttpResponse.decoderResult().cause());
                                             return;
                                         }
                                         boolean proxyResp = (boolean) channelHandlerContext.channel().attr(AttributeKey.valueOf("proxy")).get();
@@ -84,11 +89,12 @@ public class SuperWebRequester implements WebRequester {
                                             channelHandlerContext.channel().attr(AttributeKey.valueOf("proxy")).set(false);
                                             channelHandlerContext.writeAndFlush(request).addListener((ChannelFutureListener) channelFuture -> {
                                                 if (channelFuture.isSuccess()) {
-                                                    log.debug("正式发送请求成功");
+                                                    log.trace("正式发送请求成功");
                                                     return;
                                                 }
                                                 // TODO 失败处理
-                                                log.error("正式请求失败", channelFuture.cause());
+                                                channelFuture.channel().close();
+                                                webRequest.failed(channelFuture.cause());
                                             });
                                             return;
                                         }
@@ -97,15 +103,15 @@ public class SuperWebRequester implements WebRequester {
                                         for (Map.Entry<String, String> header : fullHttpResponse.headers()) {
                                             if (header.getKey().equalsIgnoreCase("Set-Cookie")) {
                                                 Cookie cookie = ClientCookieDecoder.LAX.decode(header.getValue());
-                                                log.debug("cookie -> {}:{}", cookie.name(), cookie.value());
+                                                log.trace("cookie -> {}:{}", cookie.name(), cookie.value());
                                             }
                                             sb.append(header.getKey()).append(":").append(header.getValue()).append("\n");
                                             if (header.getKey().equalsIgnoreCase("Content-Type")) {
                                                 ContentType contentType = ContentType.parse(header.getValue());
                                                 if (contentType != null && contentType.getCharset() != null) {
                                                     charset = contentType.getCharset().name();
-                                                } else {
-                                                    charset = webRequest.getCharset();
+                                                } else if (webRequest instanceof BasicWebRequest) {
+                                                    charset = ((BasicWebRequest) webRequest).getCharset();
                                                 }
                                             }
                                         }
@@ -113,10 +119,17 @@ public class SuperWebRequester implements WebRequester {
                                             charset = "utf-8";
                                         }
                                         String content = new String(ByteBufUtil.getBytes(fullHttpResponse.content()), charset);
-                                        log.debug("响应头 -> \n{}", sb.toString());
-                                        log.debug("正文 -> \n{}", content);
+                                        log.trace("响应头 -> \n{}", sb.toString());
+                                        log.trace("正文 -> \n{}", content);
                                         channelHandlerContext.close();
                                         workerGroup.shutdownGracefully();
+                                    }
+
+                                    @Override
+                                    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                                        // TODO 失败处理
+                                        ctx.close();
+                                        webRequest.failed(cause);
                                     }
                                 })
                         ;
@@ -132,8 +145,8 @@ public class SuperWebRequester implements WebRequester {
         future.addListener((ChannelFutureListener) channelFuture -> {
             if (!channelFuture.isSuccess()) {
                 // TODO 失败处理
-                log.debug("连接失败 -> {}", httpProtocol);
                 channelFuture.channel().close();
+                webRequest.failed(channelFuture.cause());
                 return;
             }
             channelFuture.channel().attr(AttributeKey.valueOf("proxy")).set(finalProxy);
@@ -150,8 +163,8 @@ public class SuperWebRequester implements WebRequester {
                     return;
                 }
                 // TODO 失败处理
-                log.error("发送失败", channelFuture1.cause());
                 channelFuture1.channel().close();
+                webRequest.failed(channelFuture1.cause());
             });
         })
         ;

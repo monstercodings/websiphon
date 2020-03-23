@@ -1,5 +1,8 @@
 package top.codings.websiphon.bean;
 
+import top.codings.websiphon.core.context.CrawlerContext;
+
+import java.net.Proxy;
 import java.util.Map;
 
 public interface WebRequest {
@@ -12,6 +15,8 @@ public interface WebRequest {
     Map<String, String> headers();
 
     WebResponse response();
+
+    CrawlerContext context();
 
     /*@Getter
     @Setter

@@ -206,7 +206,7 @@ public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W>
             event.setThrowable(e);
             event.setRequest(w);
             response.setErrorEvent(event);
-            crawlerContext.finishRequest(w);
+            crawlerContext.doOnFinished(w);
         }
     }
 
@@ -229,7 +229,7 @@ public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W>
                         size.getAndDecrement();
                         WebResponse webResponse = webRequest.getResponse();
                         if (null == webResponse) {
-                            crawlerContext.finishRequest(webRequest);
+                            crawlerContext.doOnFinished(webRequest);
                             return;
                         }
                         try {
@@ -269,7 +269,7 @@ public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W>
                             event.setRequest(webRequest);
                             webRequest.getResponse().setErrorEvent(event);
                         } finally {
-                            crawlerContext.finishRequest(webRequest);
+                            crawlerContext.doOnFinished(webRequest);
                         }
                     }
 
@@ -287,7 +287,7 @@ public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W>
                             event.setRequest(webRequest);
                             webRequest.getResponse().setErrorEvent(event);
                         } finally {
-                            crawlerContext.finishRequest(webRequest);
+                            crawlerContext.doOnFinished(webRequest);
                         }
                     }
 
@@ -301,7 +301,7 @@ public class ApacheWebRequester<W extends WebRequest> implements WebRequester<W>
                             event.setRequest(webRequest);
                             webRequest.getResponse().setErrorEvent(event);
                         } finally {
-                            crawlerContext.finishRequest(webRequest);
+                            crawlerContext.doOnFinished(webRequest);
                         }
                     }
                 });

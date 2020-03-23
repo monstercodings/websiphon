@@ -49,12 +49,12 @@ public class RateResult {
     public void incrementResult(WebRequest webRequest) {
         if (null == webRequest) {
             return;
-        } else if (webRequest.getResponse() == null) {
+        } else if (webRequest.response() == null) {
             return;
-        } else if (webRequest.getResponse().getResult() == null) {
+        } else if (webRequest.response().getResult() == null) {
             return;
         }
-        WebResponse.Result result = webRequest.getResponse().getResult();
+        WebResponse.Result result = webRequest.response().getResult();
         if (result == null) {
             return;
         }

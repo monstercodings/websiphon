@@ -60,8 +60,8 @@ public class BasicCrawlerContext implements CrawlerContext {
     }
 
     @Override
-    public void finishRequest(WebRequest webRequest) {
-        webHandler.handleSuccessd(webRequest);
+    public void doOnFinished(Object data) {
+        webHandler.doOnFinished(data);
     }
 
     /*@Override

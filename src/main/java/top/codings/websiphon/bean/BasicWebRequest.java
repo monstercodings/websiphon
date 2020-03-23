@@ -1,12 +1,12 @@
 package top.codings.websiphon.bean;
 
+import lombok.Getter;
 import lombok.Setter;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
 
 import java.net.Proxy;
 import java.util.Map;
-import java.util.Optional;
 
 @Setter
 public class BasicWebRequest implements WebRequest {
@@ -18,10 +18,12 @@ public class BasicWebRequest implements WebRequest {
     protected int depth;
     protected int maxDepth;
     protected WebResponse response;
+    @Getter
     protected Proxy proxy;
     protected CrawlerContext context;
     protected long beginAt;
     protected long endAt;
+    @Getter
     protected String charset;
 
     @Override
@@ -50,8 +52,13 @@ public class BasicWebRequest implements WebRequest {
     }
 
     @Override
+    public CrawlerContext context() {
+        return context;
+    }
+
+    @Override
     public void succeed() {
-        context.finishRequest(this);
+        context.doOnFinished(this);
     }
 
     @Override
@@ -62,6 +69,6 @@ public class BasicWebRequest implements WebRequest {
         WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
         event.setThrowable(throwable);
         event.setRequest(this);
-        request.getResponse().setErrorEvent(event);
+        context.doOnFinished(event);
     }
 }

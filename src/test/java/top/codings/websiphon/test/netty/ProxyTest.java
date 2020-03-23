@@ -18,6 +18,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.util.StringUtils;
+import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.requester.SuperWebRequester;
 import top.codings.websiphon.util.HttpOperator;
@@ -40,8 +41,8 @@ public class ProxyTest {
 
     @Test
     public void test() throws Exception {
-        WebRequest webRequest = new WebRequest();
-        webRequest.setUrl(url);
+        BasicWebRequest webRequest = new BasicWebRequest();
+        webRequest.setUri(url);
         webRequest.setCharset("gbk");
         webRequest.setMethod(WebRequest.Method.POST);
         webRequest.setBody(String.format("loginname=%s&password=%s&isread=on&from_domain=i&action=save&lang=c",

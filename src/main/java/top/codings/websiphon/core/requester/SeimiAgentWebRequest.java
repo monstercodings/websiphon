@@ -60,7 +60,7 @@ public class SeimiAgentWebRequest implements WebRequester<WebRequest> {
                                         event.setThrowable(new WebNetworkException("目标超时未响应"));
                                         event.setRequest(webRequest);
                                         webRequest.getResponse().setErrorEvent(event);
-                                        webRequest.context().finishRequest(webRequest);
+                                        webRequest.context().doOnFinished(webRequest);
                                         ctx.close();
                                     }
                                 })
@@ -110,7 +110,7 @@ public class SeimiAgentWebRequest implements WebRequester<WebRequest> {
             event.setThrowable(future.cause());
             event.setRequest(webRequest);
             webRequest.getResponse().setErrorEvent(event);
-            webRequest.context().finishRequest(webRequest);
+            webRequest.context().doOnFinished(webRequest);
         });
     }
 

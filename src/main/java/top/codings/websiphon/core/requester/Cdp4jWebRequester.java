@@ -120,7 +120,7 @@ public class Cdp4jWebRequester<W extends WebRequest> implements WebRequester<W> 
 //                event.setContext(crawlerContext);
                 event.setRequest(request);
                 response.setErrorEvent(event);
-                crawlerContext.finishRequest(request);
+                crawlerContext.doOnFinished(request);
                 return;
             }
             String encoding = HttpDecodeUtils.findCharset(content);
@@ -136,7 +136,7 @@ public class Cdp4jWebRequester<W extends WebRequest> implements WebRequester<W> 
             } else {
                 response.setContentType("text/html");
             }
-            crawlerContext.finishRequest(request);
+            crawlerContext.doOnFinished(request);
         });
     }
 

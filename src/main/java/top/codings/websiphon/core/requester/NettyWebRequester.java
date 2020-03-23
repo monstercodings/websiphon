@@ -240,7 +240,7 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
             future.addListener((ChannelFutureListener) channelFuture -> {
                 if (!channelFuture.isSuccess()) {
                     initNetworkException(new WebNetworkException(String.format("无法连接目标服务器[%s:%d]", httpProtocol.getHost(), httpProtocol.getPort())), crawlerContext, request);
-                    crawlerContext.finishRequest(request);
+                    crawlerContext.doOnFinished(request);
                     return;
                 }
                 size.getAndIncrement();
@@ -275,7 +275,7 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
             });
         } catch (Exception e) {
             initNetworkException(e, crawlerContext, request);
-            crawlerContext.finishRequest(request);
+            crawlerContext.doOnFinished(request);
         }
     }
 
@@ -417,7 +417,7 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
                 return;
             }
             initNetworkException(new WebNetworkException("网络异常中断"), crawlerContext, request);*/
-            crawlerContext.finishRequest(request);
+            crawlerContext.doOnFinished(request);
         }
 
         @Override

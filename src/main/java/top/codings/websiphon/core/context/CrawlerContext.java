@@ -34,7 +34,7 @@ public interface CrawlerContext {
 
     CrawlerContext setId(String id);
 
-    void finishRequest(WebRequest webRequest);
+    void doOnFinished(Object data);
 
 //    void close();
 
