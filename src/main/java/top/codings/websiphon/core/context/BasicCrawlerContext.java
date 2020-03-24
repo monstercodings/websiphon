@@ -45,7 +45,9 @@ public class BasicCrawlerContext implements CrawlerContext {
 
     @Override
     public void clearTask() {
-        webHandler.getReadWritePipeline().clear();
+        if (webHandler.getReadWritePipeline() != null) {
+            webHandler.getReadWritePipeline().clear();
+        }
     }
 
     @Override

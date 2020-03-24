@@ -22,7 +22,6 @@ public class BasicRequestScheduler implements RequestScheduler {
     private Map<String, HostAndTask> hostAndTasks = new ConcurrentHashMap<>();
     private LinkedTransferQueue<WebRequest> tasks = new LinkedTransferQueue<>();
     private ExecutorService executorService = Executors.newCachedThreadPool();
-    private ReadWritePipeline pipeline;
     private QueueMonitor queueMonitor;
 
     public BasicRequestScheduler(int maxRequestCount) {
@@ -30,8 +29,7 @@ public class BasicRequestScheduler implements RequestScheduler {
     }
 
     @Override
-    public void init(ReadWritePipeline pipeline, QueueMonitor queueMonitor) {
-        this.pipeline = pipeline;
+    public void init(QueueMonitor queueMonitor) {
         this.queueMonitor = queueMonitor;
         executorService.submit(() -> {
             while (!Thread.currentThread().isInterrupted()) {

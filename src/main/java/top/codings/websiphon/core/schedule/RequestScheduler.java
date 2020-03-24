@@ -5,7 +5,7 @@ import top.codings.websiphon.core.pipeline.ReadWritePipeline;
 import top.codings.websiphon.operation.QueueMonitor;
 
 public interface RequestScheduler {
-    void init(ReadWritePipeline pipeline, QueueMonitor queueMonitor);
+    void init(QueueMonitor queueMonitor);
 
     void handle(WebRequest request);
 

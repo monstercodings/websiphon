@@ -31,8 +31,8 @@ public class FilePipeline extends ReadWritePipelineAdapter<BasicWebRequest, Stri
                     out.clear();
                     conversion(line, out);
                     for (BasicWebRequest basicWebRequest : out) {
-                        queue.transfer(basicWebRequest);
-//                        write(basicWebRequest);
+//                        queue.transfer(basicWebRequest);
+                        write(basicWebRequest);
                     }
                 }
             } catch (IOException e) {

@@ -199,7 +199,7 @@ public class BasicWebHandler implements WebHandler {
     @Override
     public void init(int networkCount, int parseCount) {
         queueMonitor.init();
-        scheduler.init(readWritePipeline, queueMonitor);
+        scheduler.init(queueMonitor);
         proxyPool.init();
         rateResult.start();
         networkToken = new Semaphore(networkCount);
@@ -222,18 +222,20 @@ public class BasicWebHandler implements WebHandler {
         // 设置为守护线程
         runThread.setDaemon(true);
         runThread.start();
-        Thread transfer = new Thread(() -> {
-            try {
-                while (!Thread.currentThread().isInterrupted()) {
-                    scheduler.handle(readWritePipeline.read());
+        if (readWritePipeline != null) {
+            Thread transfer = new Thread(() -> {
+                try {
+                    while (!Thread.currentThread().isInterrupted()) {
+                        scheduler.handle(readWritePipeline.read());
+                    }
+                } catch (InterruptedException e) {
+                    return;
                 }
-            } catch (InterruptedException e) {
-                return;
-            }
-        });
-        transfer.setName("transfer");
-        transfer.setDaemon(true);
-        transfer.start();
+            });
+            transfer.setName("transfer");
+            transfer.setDaemon(true);
+            transfer.start();
+        }
     }
 
     @Override

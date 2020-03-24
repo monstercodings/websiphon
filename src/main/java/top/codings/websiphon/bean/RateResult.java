@@ -51,8 +51,6 @@ public class RateResult {
             return;
         } else if (webRequest.response() == null) {
             return;
-        } else if (webRequest.response().getResult() == null) {
-            return;
         }
         WebResponse.Result result = webRequest.response().getResult();
         if (result == null) {

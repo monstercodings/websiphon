@@ -17,13 +17,15 @@ public abstract class ReadWritePipelineAdapter<T extends WebRequest, P> implemen
 
     @Override
     public PushResult write(T webRequest) throws InterruptedException {
-        boolean success = queue.offer(webRequest);
+        queue.transfer(webRequest);
+        return PushResult.SUCCESS;
+        /*boolean success = queue.offer(webRequest);
         if (success) {
             log.debug("推送完成");
             return PushResult.SUCCESS;
         }
         log.debug("推送失败");
-        return PushResult.FULL_QUEUE;
+        return PushResult.FULL_QUEUE;*/
     }
 
     @Override
