@@ -4,7 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import top.codings.websiphon.bean.*;
+import top.codings.websiphon.bean.BasicWebRequest;
+import top.codings.websiphon.bean.PushResult;
+import top.codings.websiphon.bean.RateResult;
+import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
 import top.codings.websiphon.core.context.event.WebSyncEvent;
@@ -19,6 +22,8 @@ import top.codings.websiphon.core.pipeline.ReadWritePipeline;
 import top.codings.websiphon.core.proxy.ProxyPool;
 import top.codings.websiphon.core.proxy.manager.ProxyManager;
 import top.codings.websiphon.core.requester.WebRequester;
+import top.codings.websiphon.core.schedule.support.BasicRequestScheduler;
+import top.codings.websiphon.exception.StopWebRequestException;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.exception.WebNetworkException;
 import top.codings.websiphon.factory.bean.CrawlThreadPoolExecutor;
@@ -31,6 +36,9 @@ import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * 调度器
+ */
 @Slf4j
 public class BasicWebHandler implements WebHandler {
     private LinkedTransferQueue<RespRunner> respQueue = new LinkedTransferQueue<>();
@@ -52,6 +60,8 @@ public class BasicWebHandler implements WebHandler {
     @Getter
     private Map<Class<? extends WebSyncEvent>, WebSyncEventListener> syncMap = new HashMap<>();
     private Thread runThread;
+    @Setter
+    private BasicRequestScheduler scheduler;
     /**
      * 异步事件池
      */
@@ -85,11 +95,10 @@ public class BasicWebHandler implements WebHandler {
     private RateResult rateResult = new RateResult();
 
     @Override
-    public void request() throws InterruptedException {
+    public void request(CrawlerContext context) throws InterruptedException {
         networkToken.acquire();
-        WebRequest request = readWritePipeline.read();
-        // TODO 校验URL正确性
-        CrawlerContext context = request.context();
+        WebRequest request = scheduler.take();
+        request.context(context);
         try {
             if (request instanceof BasicWebRequest) {
                 BasicWebRequest basicWebRequest = (BasicWebRequest) request;
@@ -97,12 +106,13 @@ public class BasicWebHandler implements WebHandler {
                 basicWebRequest.setBeginAt(System.currentTimeMillis());
             }
             WebBeforeRequestEvent event = new WebBeforeRequestEvent();
-            event.setContext(context);
             event.setRequest(request);
             postSyncEvent(event);
             webRequester.execute(request);
             rateResult.addTotal();
             return;
+        } catch (StopWebRequestException e) {
+            // 停止处理该请求
         } catch (WebNetworkException e) {
             WebNetworkExceptionEvent exceptionEvent = new WebNetworkExceptionEvent();
             exceptionEvent.setRequest(request);
@@ -125,11 +135,18 @@ public class BasicWebHandler implements WebHandler {
 
     @Override
     public PushResult write(WebRequest request) {
-        PushResult result = readWritePipeline.write(request);
+        scheduler.handle(request);
+        return PushResult.SUCCESS;
+        /*PushResult result;
+        try {
+            result = readWritePipeline.write(request);
+        } catch (InterruptedException e) {
+            return PushResult.BLOCK_FAILED;
+        }
         if (result == PushResult.SUCCESS) {
             queueMonitor.increment(request);
         }
-        return result;
+        return result;*/
     }
 
     public void handleSuccessd(WebRequest request) {
@@ -181,6 +198,8 @@ public class BasicWebHandler implements WebHandler {
 
     @Override
     public void init(int networkCount, int parseCount) {
+        queueMonitor.init();
+        scheduler.init(readWritePipeline, queueMonitor);
         proxyPool.init();
         rateResult.start();
         networkToken = new Semaphore(networkCount);
@@ -203,7 +222,18 @@ public class BasicWebHandler implements WebHandler {
         // 设置为守护线程
         runThread.setDaemon(true);
         runThread.start();
-        queueMonitor.init();
+        Thread transfer = new Thread(() -> {
+            try {
+                while (!Thread.currentThread().isInterrupted()) {
+                    scheduler.handle(readWritePipeline.read());
+                }
+            } catch (InterruptedException e) {
+                return;
+            }
+        });
+        transfer.setName("transfer");
+        transfer.setDaemon(true);
+        transfer.start();
     }
 
     @Override
@@ -248,7 +278,7 @@ public class BasicWebHandler implements WebHandler {
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         rateResult.close();
         /*if (runThread != null) {
             runThread.interrupt();
@@ -273,7 +303,6 @@ public class BasicWebHandler implements WebHandler {
         public void run() {
             try {
                 WebBeforeParseEvent event = new WebBeforeParseEvent();
-                event.setContext(request.context());
                 event.setRequest(request);
                 postSyncEvent(event);
                 webParser.parse(request, request.context());
@@ -283,7 +312,6 @@ public class BasicWebHandler implements WebHandler {
                 }
 //                rateResult.addSuccess(request.getEndAt() - request.getBeginAt());
                 WebAfterParseEvent afterParseEvent = new WebAfterParseEvent();
-                afterParseEvent.setContext(request.context());
                 afterParseEvent.setRequest(request);
                 postSyncEvent(afterParseEvent);
             } catch (WebException e) {

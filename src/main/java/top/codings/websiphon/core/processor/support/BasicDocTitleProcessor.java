@@ -51,7 +51,7 @@ public class BasicDocTitleProcessor extends WebProcessorAdapter<WebRequestDoc> {
                 return;
             }
         }
-        Element titleEle = Jsoup.parse(request.getResponse().getHtml()).select("title").first();
+        Element titleEle = Jsoup.parse(request.response().getHtml()).select("title").first();
         if (titleEle != null) {
             String title = titleEle.text();
             if (StringUtils.isNotBlank(title)) {

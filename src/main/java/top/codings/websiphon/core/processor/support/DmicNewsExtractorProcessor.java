@@ -18,7 +18,7 @@ public class DmicNewsExtractorProcessor extends WebProcessorAdapter<WebRequestDo
     public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
         ResultDoc resultDoc = request.getResultDoc();
         try {
-            ContentExtractor.News news = ContentExtractor.getNewsByDoc(Jsoup.parse(request.getResponse().getHtml()));
+            ContentExtractor.News news = ContentExtractor.getNewsByDoc(Jsoup.parse(request.response().getHtml()));
             resultDoc.setTitleStr(news.getTitle());
             resultDoc.setCreatedAtStr(news.getTime());
             try {

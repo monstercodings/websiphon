@@ -5,6 +5,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.Crawler;
 import top.codings.websiphon.core.context.CrawlerContext;
@@ -14,7 +15,6 @@ import top.codings.websiphon.core.plugins.RateLimiterPlugin;
 import top.codings.websiphon.core.plugins.UrlFilterPlugin;
 import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.core.requester.Cdp4jWebRequester;
-import top.codings.websiphon.core.requester.NettyWebRequester;
 import top.codings.websiphon.core.support.CrawlerBuilder;
 import top.codings.websiphon.exception.WebParseException;
 import top.codings.websiphon.util.HttpOperator;
@@ -33,10 +33,10 @@ public class LagouSpider {
                     @Override
                     public void process(WebRequest request, CrawlerContext context) throws WebParseException {
                         pageCount.getAndIncrement();
-                        if (!request.getResponse().getContentType().startsWith("text")) {
+                        if (!request.response().getContentType().startsWith("text")) {
                             return;
                         }
-                        Document document = Jsoup.parse(request.getResponse().getHtml());
+                        Document document = Jsoup.parse(request.response().getHtml());
                         Elements lis = document.select("ul.item_con_list>li");
                         for (Element li : lis) {
                             String positionid = li.attr("data-positionid");
@@ -48,9 +48,9 @@ public class LagouSpider {
                         Element page = document.selectFirst(".pager_container");
                         if (null != page) {
                             String href = page.select("a").last().attr("href");
-                            String url = HttpOperator.recombineLink(href, request.getUrl());
-                            WebRequest newReq = WebRequest.simple(url);
-                            context.getCrawler().push(newReq);
+                            String url = HttpOperator.recombineLink(href, request.uri());
+                            /*WebRequest newReq = WebRequest.simple(url);
+                            context.getCrawler().push(newReq);*/
                         } else {
                             log.debug("无下一页，当前页数 {}", pageCount.get());
                         }
@@ -84,9 +84,9 @@ public class LagouSpider {
         // 启动爬虫(异步)
         crawler.start();
         // 构建爬取任务
-        WebRequest request = new WebRequest();
+        BasicWebRequest request = new BasicWebRequest();
         // 设置需要爬取的入口URL
-        request.setUrl("https://www.lagou.com/zhaopin/");
+        request.setUri("https://www.lagou.com/zhaopin/");
         // 设置超时
         request.setTimeout(60000);
         // 将任务推送给爬虫

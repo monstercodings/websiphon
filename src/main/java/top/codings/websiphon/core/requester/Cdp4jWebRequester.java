@@ -93,7 +93,7 @@ public class Cdp4jWebRequester<W extends WebRequest> implements WebRequester<W> 
             Throwable throwable = null;
             String content;
             try {
-                session.navigate(request.getUrl()).waitDocumentReady(request.getTimeout());
+                session.navigate(request.uri()).waitDocumentReady();
             } catch (Exception e) {
                 throwable = e;
                 session.stop();
@@ -109,18 +109,11 @@ public class Cdp4jWebRequester<W extends WebRequest> implements WebRequester<W> 
                 }
             }
 
-            request.setResponse(Optional.ofNullable(request.getResponse()).orElse(new WebResponse()));
-            WebResponse response = request.getResponse();
-            response.setUrl(request.getUrl());
+            WebResponse response = request.response();
+            response.setUrl(request.uri());
             response.setResult(WebResponse.Result.OK);
-            response.setStatusCode(200);
             if (StringUtils.isBlank(content) && throwable != null) {
-                WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
-                event.setThrowable(throwable);
-//                event.setContext(crawlerContext);
-                event.setRequest(request);
-                response.setErrorEvent(event);
-                crawlerContext.doOnFinished(request);
+                request.failed(throwable);
                 return;
             }
             String encoding = HttpDecodeUtils.findCharset(content);

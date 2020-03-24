@@ -5,6 +5,7 @@ import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.util.HttpOperator;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedTransferQueue;
@@ -12,9 +13,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
-public class BasicReadWritePipeline implements ReadWritePipeline {
-    public static final String ID = "BasicReadWritePipeline";
-
+public class BasicReadWritePipeline extends ReadWritePipelineAdapter {
     private LinkedTransferQueue<WebRequest> requests = new LinkedTransferQueue<>();
     private Map<String, RequestCompose> hostStat = new ConcurrentHashMap<>();
     private Semaphore token;
@@ -36,21 +35,6 @@ public class BasicReadWritePipeline implements ReadWritePipeline {
     @Override
     public void init() {
         token = new Semaphore(Integer.MAX_VALUE);
-        /*Thread thread = new Thread(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
-                hostStat.forEach((host, compose) -> {
-                    if (compose.at.get() < currentRequestByHost) {
-                        WebRequest request = compose.queue.poll();
-                        if (request != null) {
-                            compose.at.getAndIncrement();
-                            requests.offer(request);
-                        }
-                    }
-                });
-            }
-        });
-        thread.setDaemon(true);
-        thread.start();*/
     }
 
     /**
@@ -59,7 +43,7 @@ public class BasicReadWritePipeline implements ReadWritePipeline {
      * @param request
      */
     public void eliminateForRequest(WebRequest request) {
-        HttpOperator.HttpProtocol protocol = HttpOperator.resolve(request.getUrl());
+        HttpOperator.HttpProtocol protocol = HttpOperator.resolve(request.uri());
         hostStat.get(protocol.getHost()).at.getAndDecrement();
     }
 
@@ -94,8 +78,8 @@ public class BasicReadWritePipeline implements ReadWritePipeline {
     }
 
     @Override
-    public int size() {
-        return size.get();
+    public void conversion(Object param, List out) {
+
     }
 
     @Override
@@ -108,11 +92,6 @@ public class BasicReadWritePipeline implements ReadWritePipeline {
     public void clear() {
         requests.clear();
         token = new Semaphore(Integer.MAX_VALUE);
-    }
-
-    @Override
-    public String getId() {
-        return ID;
     }
 
     private class RequestCompose {

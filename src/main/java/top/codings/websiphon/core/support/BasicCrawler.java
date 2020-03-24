@@ -42,13 +42,11 @@ public class BasicCrawler implements Crawler {
             // 初始化请求器
             context.getWebHandler().getWebRequester().init();
             WebCrawlStartEvent event = new WebCrawlStartEvent();
-            event.setContext(context);
             context.postSyncEvent(event);
         } catch (Exception e) {
             context.setRunning(false);
             WebExceptionEvent event = new WebExceptionEvent();
             event.setThrowable(e);
-            event.setContext(context);
             context.postAsyncEvent(event);
             return context;
         }
@@ -86,17 +84,9 @@ public class BasicCrawler implements Crawler {
         if (!context.isRunning()) {
             return PushResult.CRAWLER_STOP;
         }
-        if (null == request || StringUtils.isBlank(request.getUrl())) {
+        if (null == request || StringUtils.isBlank(request.uri())) {
             throw new NullPointerException("爬取任务不能为空");
         }
-        request.setUrl(request.getUrl().trim());
-        /*if (MapUtils.isEmpty(request.getHeaders())) {
-            request.setHeaders(HeadersUtils.getHeaders());
-        }*/
-        if (request.getTimeout() == 0) {
-            request.setTimeout(6000);
-        }
-        request.setContext(context);
         return context.getWebHandler().write(request);
     }
 
@@ -111,7 +101,7 @@ public class BasicCrawler implements Crawler {
     private void loop() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                context.getWebHandler().request();
+                context.getWebHandler().request(context);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -128,15 +118,18 @@ public class BasicCrawler implements Crawler {
         }
         context.setEndAt(System.currentTimeMillis());
         try {
-            context.postSyncEvent(new WebCrawlShutdownEvent().setContext(context));
+            context.postSyncEvent(new WebCrawlShutdownEvent());
         } catch (Exception e) {
             WebExceptionEvent event = new WebExceptionEvent();
             event.setThrowable(e);
-            event.setContext(context);
             context.postAsyncEvent(event);
         }
         context.setRunning(false);
         executorService.shutdownNow();
-        context.getWebHandler().close();
+        try {
+            context.getWebHandler().close();
+        } catch (Exception e) {
+            log.error("关闭爬虫时发生异常", e);
+        }
     }
 }

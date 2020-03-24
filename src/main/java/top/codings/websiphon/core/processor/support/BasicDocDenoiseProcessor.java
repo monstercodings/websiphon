@@ -31,7 +31,7 @@ public class BasicDocDenoiseProcessor extends WebProcessorAdapter<WebRequestDoc>
 
     @Override
     public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
-        Document document = Jsoup.parse(request.getResponse().getHtml());
+        Document document = Jsoup.parse(request.response().getHtml());
 //        document.getElementsByTag("a").attr("href", "javascript:void(0)").remove();
         document.getElementsByAttributeValue("display", "none").remove();
         document.getElementsByAttributeValueContaining("style", "display:none").remove();

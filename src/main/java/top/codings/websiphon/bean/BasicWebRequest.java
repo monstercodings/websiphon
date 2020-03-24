@@ -7,6 +7,7 @@ import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
 
 import java.net.Proxy;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 @Setter
 public class BasicWebRequest implements WebRequest {
@@ -17,7 +18,7 @@ public class BasicWebRequest implements WebRequest {
     protected int timeout;
     protected int depth;
     protected int maxDepth;
-    protected WebResponse response;
+    protected WebResponse response = new WebResponse();
     @Getter
     protected Proxy proxy;
     protected CrawlerContext context;
@@ -25,6 +26,7 @@ public class BasicWebRequest implements WebRequest {
     protected long endAt;
     @Getter
     protected String charset;
+    protected Semaphore token;
 
     @Override
     public String uri() {
@@ -57,18 +59,32 @@ public class BasicWebRequest implements WebRequest {
     }
 
     @Override
+    public void context(CrawlerContext context) {
+        this.context = context;
+    }
+
+    @Override
+    public void token(Semaphore token) {
+        this.token = token;
+    }
+
+    @Override
     public void succeed() {
+        token.release();
         context.doOnFinished(this);
     }
 
     @Override
     public void failed(Throwable throwable) {
-        if (response == null) {
-            response = new WebResponse();
-        }
+        token.release();
         WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
         event.setThrowable(throwable);
         event.setRequest(this);
         context.doOnFinished(event);
+    }
+
+    @Override
+    public void discard() {
+        token.release();
     }
 }

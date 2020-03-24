@@ -4,16 +4,19 @@ import top.codings.websiphon.bean.PushResult;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.context.WebType;
 
-public interface ReadWritePipeline<IN extends WebRequest> extends WebType {
+import java.util.Collection;
+import java.util.List;
+
+public interface ReadWritePipeline<W extends WebRequest, P> extends WebType {
     void init();
 
-    IN read() throws InterruptedException;
+    W read() throws InterruptedException;
 
-    PushResult write(IN webRequest);
+    PushResult write(W webRequest) throws InterruptedException;
 
-    int size();
+    void conversion(P param, List<W> out);
 
-    void close();
+    void close() throws Exception;
 
     void clear();
 }

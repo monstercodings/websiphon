@@ -1,3 +1,4 @@
+/*
 package top.codings.websiphon.core.requester;
 
 import top.codings.websiphon.bean.PushResult;
@@ -72,7 +73,8 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
     @Override
     public void init() throws Exception {
         try {
-            /*KeyManager[] keyManagers = new KeyManager[]{new KeyManager() {
+            */
+/*KeyManager[] keyManagers = new KeyManager[]{new KeyManager() {
             }};
             TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
                 private X509Certificate[] chain;
@@ -93,7 +95,8 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
                 }
             }};
             sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(keyManagers, trustAllCerts, new SecureRandom());*/
+            sslContext.init(keyManagers, trustAllCerts, new SecureRandom());*//*
+
 //            sslContext=SSLContext.getDefault();
             sslContext = SSLContextBuilder.create().loadTrustMaterial((x509Certificates, s) -> true).build();
         } catch (Exception e) {
@@ -207,9 +210,11 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
                                         @Override
                                         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
                                             try {
-                                                /*if (cause.getCause() != null && cause.getCause() instanceof SSLException) {
+                                                */
+/*if (cause.getCause() != null && cause.getCause() instanceof SSLException) {
                                                     return;
-                                                }*/
+                                                }*//*
+
                                                 log.trace("netty网络请求发生异常 -> {}", cause.getLocalizedMessage());
                                                 WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
                                                 event.setThrowable(cause);
@@ -279,13 +284,15 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
         }
     }
 
-    /**
+    */
+/**
      * 构造网络异常相关数据
      *
      * @param e
      * @param crawlerContext
      * @param request
-     */
+     *//*
+
     private void initNetworkException(Exception e, CrawlerContext crawlerContext, W request) {
         WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
         event.setThrowable(e);
@@ -328,7 +335,9 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
             public void checkServerTrusted(X509Certificate[] chain, String authType) {
             }
         }
-        }, null/*new java.security.SecureRandom()*/);
+        }, null*/
+/*new java.security.SecureRandom()*//*
+);
         SSLEngine sslEngine = ctx.createSSLEngine();
         sslEngine.setUseClientMode(true);
 
@@ -413,10 +422,12 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             size.getAndDecrement();
-            /*if (ctx.channel().attr(AttributeKey.valueOf("success")).get() != null) {
+            */
+/*if (ctx.channel().attr(AttributeKey.valueOf("success")).get() != null) {
                 return;
             }
-            initNetworkException(new WebNetworkException("网络异常中断"), crawlerContext, request);*/
+            initNetworkException(new WebNetworkException("网络异常中断"), crawlerContext, request);*//*
+
             crawlerContext.doOnFinished(request);
         }
 
@@ -430,3 +441,4 @@ public class NettyWebRequester<W extends WebRequest> implements WebRequester<W> 
         }
     }
 }
+*/

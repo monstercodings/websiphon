@@ -12,7 +12,7 @@ import org.jsoup.select.Elements;
 public class BasicDocMarkScoreProcessor extends WebProcessorAdapter<WebRequestDoc> {
     @Override
     public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
-        Element body = Jsoup.parse(request.getResponse().getHtml()).body();
+        Element body = Jsoup.parse(request.response().getHtml()).body();
         doScoreToElement(body);
         fireProcess(request, context);
     }

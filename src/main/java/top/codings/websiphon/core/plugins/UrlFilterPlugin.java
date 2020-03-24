@@ -4,6 +4,7 @@ import top.codings.websiphon.bean.MethodDesc;
 import top.codings.websiphon.bean.PushResult;
 import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
+import top.codings.websiphon.core.schedule.RequestScheduler;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.factory.bean.WebHandler;
 import com.google.common.hash.BloomFilter;
@@ -56,7 +57,7 @@ public class UrlFilterPlugin<T extends WebRequest> implements WebPlugin {
             return params;
         }
         T request = (T) params[0];
-        boolean setin = bloomFilter == null ? true : bloomFilter.put(request.getUrl());
+        boolean setin = bloomFilter == null ? true : bloomFilter.put(request.uri());
         if (setin) {
             if (null != filter) {
                 setin = filter.test(request);
@@ -71,23 +72,25 @@ public class UrlFilterPlugin<T extends WebRequest> implements WebPlugin {
 
     @Override
     public Object after(Object proxy, Object[] params, Object result, MethodDesc methodDesc, ReturnPoint point) throws WebException {
-        try {
+        booleanThreadLocal.set(true);
+        return result;
+        /*try {
             if (!booleanThreadLocal.get()) {
                 return PushResult.URL_REPEAT;
             }
             return result;
         } finally {
             booleanThreadLocal.set(true);
-        }
+        }*/
     }
 
     @Override
     public Class[] getTargetInterface() {
-        return new Class[]{WebHandler.class};
+        return new Class[]{RequestScheduler.class};
     }
 
     @Override
     public MethodDesc[] getMethods() {
-        return new MethodDesc[]{new MethodDesc("write", new Class[]{WebRequest.class})};
+        return new MethodDesc[]{new MethodDesc("handle", new Class[]{WebRequest.class})};
     }
 }

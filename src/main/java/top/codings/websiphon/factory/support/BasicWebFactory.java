@@ -1,5 +1,6 @@
 package top.codings.websiphon.factory.support;
 
+import lombok.Data;
 import top.codings.websiphon.bean.WebProcessorDefinition;
 import top.codings.websiphon.core.Crawler;
 import top.codings.websiphon.core.context.BasicCrawlerContext;
@@ -16,14 +17,14 @@ import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.processor.WebProcessor;
 import top.codings.websiphon.core.proxy.manager.ProxyManager;
 import top.codings.websiphon.core.requester.BasicAsyncWebRequester;
-import top.codings.websiphon.core.requester.NettyWebRequester;
 import top.codings.websiphon.core.requester.WebRequester;
+import top.codings.websiphon.core.schedule.RequestScheduler;
+import top.codings.websiphon.core.schedule.support.BasicRequestScheduler;
 import top.codings.websiphon.core.support.BasicCrawler;
 import top.codings.websiphon.factory.WebFactory;
 import top.codings.websiphon.factory.bean.WebHandler;
 import top.codings.websiphon.operation.QueueMonitor;
 import top.codings.websiphon.util.ParameterizedTypeUtils;
-import lombok.Data;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -35,6 +36,8 @@ public class BasicWebFactory implements WebFactory {
     private List<WebProcessorDefinition> processorDefinitions = new LinkedList<>();
     private WebParser webParser;
     private ReadWritePipeline readWritePipeline;
+    private BasicRequestScheduler scheduler;
+    private int permitForHost = 2;
 
     private BasicCrawler basicCrawler;
     private BasicCrawlerContext basicCrawlerContext;
@@ -57,6 +60,12 @@ public class BasicWebFactory implements WebFactory {
     @Override
     public WebFactory setParseThread(int max) {
         basicCrawlerContext.setParseThreadSize(max);
+        return this;
+    }
+
+    @Override
+    public WebFactory setPermitForHost(int permitForHost) {
+        this.permitForHost = permitForHost;
         return this;
     }
 
@@ -108,6 +117,7 @@ public class BasicWebFactory implements WebFactory {
         if (webParser == null) {
             webParser = new BasicWebParser();
         }
+        scheduler = new BasicRequestScheduler(permitForHost);
         for (WebPlugin plugin : plugins) {
             plugin.setWebFactory(this);
             for (Class targetInterface : plugin.getTargetInterface()) {
@@ -126,6 +136,9 @@ public class BasicWebFactory implements WebFactory {
                 if (targetInterface.isAssignableFrom(CrawlerContext.class)) {
                     basicCrawlerContext = PluginFactory.create(plugin, basicCrawlerContext);
                 }
+                if (targetInterface.isAssignableFrom(RequestScheduler.class)) {
+                    scheduler = PluginFactory.create(plugin, scheduler);
+                }
                 for (WebProcessorDefinition processorDefinition : processorDefinitions) {
                     WebProcessor processor = processorDefinition.getProcessor();
                     if (targetInterface.isAssignableFrom(processor.getClass())) {
@@ -139,6 +152,7 @@ public class BasicWebFactory implements WebFactory {
         webHandler.setWebRequester(requester);
         webHandler.setWebParser(webParser);
         webHandler.setReadWritePipeline(readWritePipeline);
+        webHandler.setScheduler(scheduler);
         webHandler.getQueueMonitor().setContext(basicCrawlerContext);
         basicCrawlerContext.setWebHandler(webHandler);
         basicCrawler.setContext(basicCrawlerContext);

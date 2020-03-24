@@ -21,7 +21,7 @@ public class BasicDocContentProcessor extends WebProcessorAdapter<WebRequestDoc>
     @Override
     public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
         ResultDoc result = request.getResultDoc();
-        result.setContentEle(getContent(Rater.getMaxScoreElement(Jsoup.parse(request.getResponse().getHtml()).body())));
+        result.setContentEle(getContent(Rater.getMaxScoreElement(Jsoup.parse(request.response().getHtml()).body())));
         if (result.getContentEle() == null) {
             fireProcess(request, context);
             return;

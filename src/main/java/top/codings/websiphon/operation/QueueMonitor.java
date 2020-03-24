@@ -65,7 +65,7 @@ public class QueueMonitor {
                 log.trace("监视器为空，无触发任务");
             }
         } else if (size < 0) {
-            log.error("队列任务统计发生异常[重复计数] -> 当前[{}] | {}", requestHolder.size(), request.getUrl());
+            log.error("队列任务统计发生异常[重复计数] -> 当前[{}] | {}", requestHolder.size(), request.uri());
         }
     }
 
@@ -73,12 +73,14 @@ public class QueueMonitor {
         if (null == monitor) {
             return;
         }
-        ((BasicCrawlerContext) context).getWebHandler().getAsyncEventExecutor().submit(() -> {
+        /*((BasicCrawlerContext) context).getWebHandler().getAsyncEventExecutor().submit(() -> {
             while (!Thread.currentThread().isInterrupted() && monitor != null) {
                 try {
                     Thread.sleep(maxTime + 500l);
                     long now = System.currentTimeMillis();
-                    int pipeSize = ((BasicCrawlerContext) context).getWebHandler().getReadWritePipeline().size();
+                    // TODO 处理该处的逻辑
+//                    int pipeSize = ((BasicCrawlerContext) context).getWebHandler().getReadWritePipeline().size();
+                    int pipeSize = 1;
                     int reqSize = ((BasicCrawlerContext) context).getWebHandler().getWebRequester().size();
                     log.trace("队列内任务数量 -> {} | 正在请求的数量 -> {} | 监视器对象数量 -> {}", pipeSize, reqSize, requestHolder.size());
                     if (!requestHolder.isEmpty() && (now - lastPushTime) > maxTime && (now - lastPullTime) > maxTime) {
@@ -94,7 +96,7 @@ public class QueueMonitor {
                 }
             }
             log.debug("结束监控队列任务");
-        });
+        });*/
     }
 
     public interface TaskHandler {

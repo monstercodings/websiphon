@@ -4,6 +4,7 @@ import top.codings.websiphon.core.context.CrawlerContext;
 
 import java.net.Proxy;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 public interface WebRequest {
     String uri();
@@ -17,6 +18,10 @@ public interface WebRequest {
     WebResponse response();
 
     CrawlerContext context();
+
+    void context(CrawlerContext context);
+
+    void token(Semaphore token);
 
     /*@Getter
     @Setter
@@ -77,6 +82,8 @@ public interface WebRequest {
     void succeed();
 
     void failed(Throwable throwable);
+
+    void discard();
 
     /*public static WebRequest simple(String url) {
         return new WebRequest(url, HeadersUtils.getHeaders(), 30 * 1000);

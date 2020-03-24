@@ -39,7 +39,7 @@ public class BasicDocImageProcessor extends WebProcessorAdapter<WebRequestDoc> {
             }
             WebImage webImage = new WebImage();
             webImage.setClassName(className);
-            webImage.setSrc(HttpOperator.recombineLink(img.attr("src"), request.getResponse().getUrl()));
+            webImage.setSrc(HttpOperator.recombineLink(img.attr("src"), request.response().getUrl()));
             webImage.setFullTag(String.format("<img class='%s' src='%s' />", className, webImage.getSrc()));
             result.getImages().add(webImage);
         });

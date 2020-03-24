@@ -1,14 +1,10 @@
 package top.codings.websiphon.core.plugins;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import top.codings.websiphon.bean.MethodDesc;
-import top.codings.websiphon.bean.PushResult;
-import top.codings.websiphon.bean.ReturnPoint;
-import top.codings.websiphon.bean.WebRequest;
+import top.codings.websiphon.bean.*;
 import top.codings.websiphon.core.context.BasicCrawlerContext;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.async.WebExceptionEvent;
@@ -17,9 +13,9 @@ import top.codings.websiphon.core.parser.WebParser;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.util.HttpOperator;
 
-import java.net.Proxy;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,19 +72,19 @@ public class ExtractUrlPlugin implements WebPlugin {
         }
         if (params.length == 2 && WebRequest.class.isAssignableFrom(params[0].getClass())) {
             WebRequest request = (WebRequest) params[0];
-            if (request.getMaxDepth() > 0 && request.getDepth() >= request.getMaxDepth()) {
+            /*if (request.getMaxDepth() > 0 && request.getDepth() >= request.getMaxDepth()) {
                 return result;
-            }
-            if (request.getResponse() == null ||
-                    StringUtils.isBlank(request.getResponse().getContentType()) ||
-                    !request.getResponse().getContentType().startsWith("text")
+            }*/
+            if (request.response() == null ||
+                    StringUtils.isBlank(request.response().getContentType()) ||
+                    !request.response().getContentType().startsWith("text")
             ) {
                 return result;
             }
             // 判断
             Document document;
             try {
-                document = Jsoup.parse(request.getResponse().getHtml());
+                document = Jsoup.parse(request.response().getHtml());
             } catch (Exception e) {
                 // TODO Jsoup解析失败
                 return result;
@@ -102,13 +98,13 @@ public class ExtractUrlPlugin implements WebPlugin {
                 if (StringUtils.isBlank(href) || href.startsWith("javascript") || href.startsWith("#")) {
                     return;
                 }
-                String url = HttpOperator.recombineLink(href, request.getUrl());
-                if (StringUtils.isBlank(url) || url.equals(request.getUrl()) || !HttpOperator.urlLegalVerify(url)) {
+                String url = HttpOperator.recombineLink(href, request.uri());
+                if (StringUtils.isBlank(url) || url.equals(request.uri()) || !HttpOperator.urlLegalVerify(url)) {
                     return;
                 }
                 url = url.trim();
                 if (sameDomain) {
-                    Matcher oldMatcher = rawFilterPattern.matcher(request.getUrl());
+                    Matcher oldMatcher = rawFilterPattern.matcher(request.uri());
                     Matcher newMatcher = rawFilterPattern.matcher(url);
                     if (oldMatcher.find() && newMatcher.find()) {
                         String oldDomain = oldMatcher.group(2);
@@ -142,22 +138,23 @@ public class ExtractUrlPlugin implements WebPlugin {
 //                log.debug("扩散总数 -> {}", urls.size());
             urls.forEach(url -> {
                 try {
-                    WebRequest clone = (WebRequest) BeanUtils.cloneBean(request);
-                    clone.setResponse(null);
-                    clone.setUrl(url);
-                    clone.setMethod(request.getMethod());
-                    clone.setProxy(request.getProxy() == Proxy.NO_PROXY ? request.getProxy() : null);
-                    clone.setHeaders(request.getHeaders());
-                    clone.setTimeout(request.getTimeout());
-                    clone.setDepth((short) (request.getDepth() + 1));
-                    clone.setMaxDepth(request.getMaxDepth());
+                    PushResult pushResult;
                     WebLinkEvent event = new WebLinkEvent();
-                    event.setContext(context);
                     event.setRequest(request);
-                    event.setNewRequest(clone);
-                    if (!context.postSyncEvent(event)) {
-                        PushResult pushResult;
-                        if ((pushResult = context.getCrawler().push(event.getNewRequest())) != PushResult.SUCCESS) {
+                    event.setNewUrl(url);
+                    if (context.postSyncEvent(event)) {
+                        List<WebRequest> out = event.getOut();
+                        for (WebRequest wr : out) {
+                            if ((pushResult = context.getCrawler().push(wr)) != PushResult.SUCCESS) {
+                                if (pushResult != PushResult.URL_REPEAT) {
+                                    log.warn("推送扩散链接给爬虫失败 -> {}", pushResult.value);
+                                }
+                            }
+                        }
+                    } else {
+                        BasicWebRequest basicWebRequest = new BasicWebRequest();
+                        basicWebRequest.setUri(url);
+                        if ((pushResult = context.getCrawler().push(basicWebRequest)) != PushResult.SUCCESS) {
                             if (pushResult != PushResult.URL_REPEAT) {
                                 log.warn("推送扩散链接给爬虫失败 -> {}", pushResult.value);
                             }

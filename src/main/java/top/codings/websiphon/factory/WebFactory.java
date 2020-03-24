@@ -16,6 +16,8 @@ public interface WebFactory<T extends WebRequest> {
 
     WebFactory<T> setParseThread(int max);
 
+    WebFactory<T> setPermitForHost(int permitForHost);
+
     WebFactory<T> addLast(WebType type);
 
     WebFactory<T> enableProxy(ProxyManager manager);

@@ -2,13 +2,14 @@ package top.codings.websiphon.factory.bean;
 
 import top.codings.websiphon.bean.PushResult;
 import top.codings.websiphon.bean.WebRequest;
+import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
 import top.codings.websiphon.core.context.event.WebSyncEvent;
 import top.codings.websiphon.core.context.event.async.WebErrorAsyncEvent;
 import top.codings.websiphon.core.proxy.manager.ProxyManager;
 
 public interface WebHandler<IN extends WebRequest> {
-    void request() throws InterruptedException;
+    void request(CrawlerContext context) throws InterruptedException;
 
     /**
      * 将请求对象推入待处理请求池
@@ -59,5 +60,5 @@ public interface WebHandler<IN extends WebRequest> {
      * 关闭爬虫
      * 释放资源
      */
-    void close();
+    void close() throws Exception;
 }

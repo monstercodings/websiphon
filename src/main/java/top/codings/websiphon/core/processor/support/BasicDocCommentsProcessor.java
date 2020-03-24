@@ -21,7 +21,7 @@ import java.util.Map;
 public class BasicDocCommentsProcessor extends WebProcessorAdapter<WebRequestDoc> {
     @Override
     public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
-        Document document = Jsoup.parse(request.getResponse().getHtml());
+        Document document = Jsoup.parse(request.response().getHtml());
         Map<String, Integer> map = new HashMap<>();
         String path = null;
         int max = 0;

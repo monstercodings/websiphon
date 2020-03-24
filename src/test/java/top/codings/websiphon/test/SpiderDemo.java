@@ -3,6 +3,7 @@ package top.codings.websiphon.test;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.RateResult;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebResponse;
@@ -41,13 +42,13 @@ public class SpiderDemo {
                 .addLast(new WebProcessorAdapter<WebRequest>() {
                     @Override
                     public void process(WebRequest request, CrawlerContext context) throws WebParseException {
-                        if (!request.getResponse().getContentType().startsWith("text")) {
+                        if (!request.response().getContentType().startsWith("text")) {
                             return;
                         }
-                        if (request.getResponse().isRedirect()) {
-                            log.debug("[{}] [跳转] 原链：{} | 转链：{}", request.getResponse().getStatusCode(), request.getResponse().getUrl(), request.getResponse().getRedirectUrl());
+                        if (request.response().isRedirect()) {
+                            log.debug("[{}] [跳转] 原链：{} | 转链：{}", request.response().getResult().getKey(), request.response().getUrl(), request.response().getRedirectUrl());
                         } else {
-                            log.debug("[{}] [正常] 链接：{}", request.getResponse().getStatusCode(), request.getResponse().getUrl());
+                            log.debug("[{}] [正常] 链接：{}", request.response().getResult().getKey(), request.response().getUrl());
                         }
 //                        log.debug("收到响应 -> {} | {}", Jsoup.parse(request.getResponse().getHtml()).title(), request.getUrl());
 //                        log.debug("{}", request.getResponse().getHtml());
@@ -97,9 +98,9 @@ public class SpiderDemo {
         } while (task.getCode() != 0);*/
 
         // 构建爬取任务
-        WebRequest request = new WebRequest();
+        BasicWebRequest request = new BasicWebRequest();
         // 设置需要爬取的入口URL
-        request.setUrl("https://www.163.com");
+        request.setUri("https://www.163.com");
 //        request.setUrl("http://2000019.ip138.com/");
         // 使用扩散插件的情况下，最大的扩散深度
         request.setMaxDepth(1);
@@ -110,7 +111,7 @@ public class SpiderDemo {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> crawler.close()));
         RateResult rateResult = crawler.getContext().getRateResult();
         StringBuilder stringBuilder = new StringBuilder();
-        /*while (true) {
+        while (true) {
             TimeUnit.SECONDS.sleep(1);
             stringBuilder.append("\n");
             for (Map.Entry<WebResponse.Result, AtomicLong> entry : rateResult.getResultStat().entrySet()) {
@@ -118,7 +119,7 @@ public class SpiderDemo {
             }
             log.debug("\n{}", stringBuilder.toString());
             stringBuilder.delete(0, stringBuilder.length());
-        }*/
+        }
 //        Thread.currentThread().join();
     }
 }

@@ -19,6 +19,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.ssl.SSLContextBuilder;
 import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.WebRequest;
+import top.codings.websiphon.bean.WebResponse;
 import top.codings.websiphon.exception.WebNetworkException;
 import top.codings.websiphon.util.HttpOperator;
 
@@ -30,6 +31,7 @@ import java.net.Proxy;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -98,31 +100,49 @@ public class SuperWebRequester implements WebRequester {
                                             });
                                             return;
                                         }
+                                        WebResponse response = webRequest.response();
+                                        Map<String, String> headers = new HashMap<>();
+                                        ContentType contentType = null;
+                                        String contentTypeStr = null;
                                         String charset = null;
-                                        StringBuilder sb = new StringBuilder();
+//                                        StringBuilder sb = new StringBuilder();
                                         for (Map.Entry<String, String> header : fullHttpResponse.headers()) {
                                             if (header.getKey().equalsIgnoreCase("Set-Cookie")) {
                                                 Cookie cookie = ClientCookieDecoder.LAX.decode(header.getValue());
                                                 log.trace("cookie -> {}:{}", cookie.name(), cookie.value());
                                             }
-                                            sb.append(header.getKey()).append(":").append(header.getValue()).append("\n");
+                                            headers.put(header.getKey(), header.getValue());
                                             if (header.getKey().equalsIgnoreCase("Content-Type")) {
-                                                ContentType contentType = ContentType.parse(header.getValue());
+                                                contentTypeStr = header.getValue();
+                                                contentType = ContentType.parse(contentTypeStr);
                                                 if (contentType != null && contentType.getCharset() != null) {
                                                     charset = contentType.getCharset().name();
                                                 } else if (webRequest instanceof BasicWebRequest) {
                                                     charset = ((BasicWebRequest) webRequest).getCharset();
                                                 }
                                             }
+//                                            sb.append(header.getKey()).append(":").append(header.getValue()).append("\n");
                                         }
+                                        response.setHeaders(headers);
                                         if (StringUtils.isBlank(charset)) {
                                             charset = "utf-8";
                                         }
-                                        String content = new String(ByteBufUtil.getBytes(fullHttpResponse.content()), charset);
-                                        log.trace("响应头 -> \n{}", sb.toString());
-                                        log.trace("正文 -> \n{}", content);
+                                        byte[] bytes = ByteBufUtil.getBytes(fullHttpResponse.content());
+                                        if (contentType != null) {
+                                            if (contentType.getMimeType().contains("text") || contentType.getMimeType().contains("application")) {
+                                                response.setHtml(new String(bytes, charset));
+                                            }
+                                            if (contentType.getMimeType().contains("json")) {
+                                                response.setJson((JSON) JSON.parse(response.getHtml()));
+                                            }
+                                        }
+                                        // TODO 处理3xx跳转问题
+                                        response.setResult(WebResponse.Result.valueOf(fullHttpResponse.status().code()));
+                                        response.setContentType(contentTypeStr);
+                                        response.setBytes(bytes);
+                                        response.setUrl(webRequest.uri());
                                         channelHandlerContext.close();
-                                        workerGroup.shutdownGracefully();
+                                        webRequest.succeed();
                                     }
 
                                     @Override
