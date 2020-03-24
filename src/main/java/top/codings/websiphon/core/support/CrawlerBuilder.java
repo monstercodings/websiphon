@@ -6,6 +6,7 @@ import top.codings.websiphon.core.context.WebType;
 import top.codings.websiphon.core.context.event.listener.WebAsyncEventListener;
 import top.codings.websiphon.core.context.event.listener.WebSyncEventListener;
 import top.codings.websiphon.core.proxy.manager.ProxyManager;
+import top.codings.websiphon.factory.WebFactory;
 import top.codings.websiphon.factory.support.BasicWebFactory;
 import top.codings.websiphon.operation.QueueMonitor;
 
@@ -51,6 +52,11 @@ public class CrawlerBuilder {
 
     public CrawlerBuilder setNetworkThread(int size) {
         webFactory.setNetworkThread(size);
+        return this;
+    }
+
+    public CrawlerBuilder setPermitForHost(int permitForHost) {
+        webFactory.setPermitForHost(permitForHost);
         return this;
     }
 
