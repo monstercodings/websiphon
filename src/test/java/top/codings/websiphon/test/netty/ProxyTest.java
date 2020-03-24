@@ -47,7 +47,7 @@ public class ProxyTest {
         webRequest.setMethod(WebRequest.Method.POST);
         webRequest.setBody(String.format("loginname=%s&password=%s&isread=on&from_domain=i&action=save&lang=c",
                 URLEncoder.encode("13826531204", "utf-8"),
-                URLEncoder.encode("hejian518", "utf-8")
+                URLEncoder.encode("", "utf-8")
         ));
         SuperWebRequester requester = new SuperWebRequester();
         requester.init();
