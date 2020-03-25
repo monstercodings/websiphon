@@ -1,14 +1,16 @@
 package top.codings.websiphon.core.proxy.strategy;
 
-import top.codings.websiphon.core.proxy.bean.ProxyExtension;
+import top.codings.websiphon.core.proxy.bean.WebProxy;
 
-import java.net.Proxy;
-import java.util.List;
+import java.util.Collection;
 
 public interface ProxyStrategy {
-    void init();
-    Proxy select(List<ProxyExtension> proxies);
+    default void init() {
 
-    ProxyStrategy RANDOM=new RandomProxyStrategy();
-    ProxyStrategy WEIGHT=new WeightProxyStrategy();
+    }
+
+    WebProxy select(Collection<WebProxy> proxies);
+
+    ProxyStrategy RANDOM = new RandomProxyStrategy();
+    ProxyStrategy WEIGHT = new WeightProxyStrategy();
 }

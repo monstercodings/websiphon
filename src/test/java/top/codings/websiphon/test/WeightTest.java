@@ -1,21 +1,29 @@
-package top.codings.websiphon.core.proxy.strategy;
+package top.codings.websiphon.test;
 
-import org.apache.commons.collections.CollectionUtils;
+import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.core.proxy.bean.WebProxy;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-/**
- * 权重策略
- */
-public class WeightProxyStrategy implements ProxyStrategy {
-    @Override
-    public WebProxy select(Collection<WebProxy> proxies) {
-        if (CollectionUtils.isEmpty(proxies)) {
-            return null;
+@Slf4j
+public class WeightTest {
+    public static void main(String[] args) {
+        int number = 1000;//假设1000个订单数
+        List<WebProxy> list = Arrays.asList(
+                new WebProxy(null, 0, 1),
+                new WebProxy(null, 0, 1),
+                new WebProxy(null, 0, 1),
+                new WebProxy(null, 0, 1)
+                );
+        for (int i = 0; i < number; i++) {
+            select(list);
         }
+        for (WebProxy proxy : list) {
+            log.debug("{}", proxy.invokedCount());
+        }
+    }
+
+    public static WebProxy select(Collection<WebProxy> proxies) {
         WebProxy[] weight = proxies.toArray(new WebProxy[0]);
         int[] count = new int[weight.length];
         for (int i = 0; i < weight.length; i++) {

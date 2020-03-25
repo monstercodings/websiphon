@@ -20,14 +20,13 @@ import org.apache.http.ssl.SSLContextBuilder;
 import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebResponse;
+import top.codings.websiphon.core.proxy.bean.WebProxy;
 import top.codings.websiphon.exception.WebNetworkException;
 import top.codings.websiphon.util.HttpOperator;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -46,17 +45,12 @@ public class SuperWebRequester implements WebRequester {
     @Override
     public void execute(WebRequest webRequest) throws WebNetworkException {
         boolean proxy = true;
-        String proxyIp = null;
-        int proxyPort = 0;
-        Proxy sysProxy = null;
+        WebProxy webProxy = null;
         if (webRequest instanceof BasicWebRequest) {
-            sysProxy = ((BasicWebRequest) webRequest).getProxy();
+            webProxy = ((BasicWebRequest) webRequest).getProxy();
         }
-        if (sysProxy == null || sysProxy == Proxy.NO_PROXY) {
+        if (webProxy == null) {
             proxy = false;
-        } else {
-            proxyIp = ((InetSocketAddress) sysProxy.address()).getHostName();
-            proxyPort = ((InetSocketAddress) sysProxy.address()).getPort();
         }
         HttpOperator.HttpProtocol httpProtocol = HttpOperator.resolve(webRequest.uri());
         Bootstrap bootstrap = new Bootstrap();
@@ -91,7 +85,6 @@ public class SuperWebRequester implements WebRequester {
                                             channelHandlerContext.channel().attr(AttributeKey.valueOf("proxy")).set(false);
                                             channelHandlerContext.writeAndFlush(request).addListener((ChannelFutureListener) channelFuture -> {
                                                 if (channelFuture.isSuccess()) {
-                                                    log.trace("正式发送请求成功");
                                                     return;
                                                 }
                                                 // TODO 失败处理
@@ -109,7 +102,7 @@ public class SuperWebRequester implements WebRequester {
                                         for (Map.Entry<String, String> header : fullHttpResponse.headers()) {
                                             if (header.getKey().equalsIgnoreCase("Set-Cookie")) {
                                                 Cookie cookie = ClientCookieDecoder.LAX.decode(header.getValue());
-                                                log.trace("cookie -> {}:{}", cookie.name(), cookie.value());
+                                                response.getCookies().add(cookie);
                                             }
                                             headers.put(header.getKey(), header.getValue());
                                             if (header.getKey().equalsIgnoreCase("Content-Type")) {
@@ -157,13 +150,17 @@ public class SuperWebRequester implements WebRequester {
                 });
         ChannelFuture future;
         if (proxy) {
-            future = bootstrap.connect(proxyIp, proxyPort);
+            future = bootstrap.connect(webProxy.getProxyIp(), webProxy.getProxyPort());
         } else {
             future = bootstrap.connect(httpProtocol.getHost(), httpProtocol.getPort());
         }
         boolean finalProxy = proxy;
+        WebProxy finalWebProxy = webProxy;
         future.addListener((ChannelFutureListener) channelFuture -> {
             if (!channelFuture.isSuccess()) {
+                if (finalProxy) {
+                    finalWebProxy.setHealthy(false);
+                }
                 // TODO 失败处理
                 channelFuture.channel().close();
                 webRequest.failed(channelFuture.cause());
@@ -238,6 +235,9 @@ public class SuperWebRequester implements WebRequester {
                 .set("Referer", webRequest.uri())
                 .set("Upgrade-Insecure-Requests", "1")
                 .set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36");
+        for (Map.Entry<String, String> entry : webRequest.headers().entrySet()) {
+            request.headers().set(entry.getKey(), entry.getValue());
+        }
         if (webRequest.body() != null) {
             if (webRequest.body() instanceof JSON) {
                 request.headers().set("Content-Type", ContentType.APPLICATION_JSON);

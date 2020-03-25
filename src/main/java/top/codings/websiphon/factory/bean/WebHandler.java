@@ -5,8 +5,6 @@ import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
 import top.codings.websiphon.core.context.event.WebSyncEvent;
-import top.codings.websiphon.core.context.event.async.WebErrorAsyncEvent;
-import top.codings.websiphon.core.proxy.manager.ProxyManager;
 
 public interface WebHandler<IN extends WebRequest> {
     void request(CrawlerContext context) throws InterruptedException;
@@ -25,13 +23,6 @@ public interface WebHandler<IN extends WebRequest> {
      * @param data
      */
     void doOnFinished(Object data);
-
-    /**
-     * 启用代理
-     *
-     * @param manager
-     */
-    void enableProxy(ProxyManager manager);
 
     /**
      * 初始化持有器

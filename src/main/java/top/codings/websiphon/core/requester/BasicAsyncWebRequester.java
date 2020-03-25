@@ -249,11 +249,11 @@ public class BasicAsyncWebRequester implements WebRequester<BasicWebRequest> {
      */
     private void initConfig(BasicWebRequest webRequest, HttpRequestBase httpRequest) {
         RequestConfig.Builder builder = RequestConfig.custom();
-        Proxy proxy = webRequest.getProxy();
+        /*Proxy proxy = webRequest.getProxy();
         if (proxy != null && proxy != Proxy.NO_PROXY) {
             HttpHost proxyHost = new HttpHost(((InetSocketAddress) proxy.address()).getHostName(), ((InetSocketAddress) proxy.address()).getPort());
             builder.setProxy(proxyHost);
-        }
+        }*/
         RequestConfig config = builder
                 .setSocketTimeout(30000)
                 .setConnectTimeout(30000)

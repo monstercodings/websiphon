@@ -1,12 +1,12 @@
 package top.codings.websiphon.bean;
 
+import io.netty.handler.codec.http.cookie.Cookie;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
 import com.alibaba.fastjson.JSON;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 @Setter
@@ -18,6 +18,7 @@ public class WebResponse {
     protected String contentType;
     protected Result result;
     protected Map<String, String> headers = new HashMap<>();
+    protected List<Cookie> cookies = new LinkedList<>();
     protected boolean redirect = false;
     protected String redirectUrl;
 

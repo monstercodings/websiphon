@@ -1,19 +1,13 @@
 package top.codings.websiphon.core.support;
 
 import top.codings.websiphon.core.Crawler;
-import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.WebType;
 import top.codings.websiphon.core.context.event.listener.WebAsyncEventListener;
 import top.codings.websiphon.core.context.event.listener.WebSyncEventListener;
-import top.codings.websiphon.core.proxy.manager.ProxyManager;
-import top.codings.websiphon.factory.WebFactory;
 import top.codings.websiphon.factory.support.BasicWebFactory;
 import top.codings.websiphon.operation.QueueMonitor;
 
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CrawlerBuilder {
 
@@ -72,11 +66,6 @@ public class CrawlerBuilder {
 
     public CrawlerBuilder setParseThread(int size) {
         webFactory.setParseThread(size);
-        return this;
-    }
-
-    public CrawlerBuilder enableProxy(ProxyManager manager) {
-        webFactory.enableProxy(manager);
         return this;
     }
 

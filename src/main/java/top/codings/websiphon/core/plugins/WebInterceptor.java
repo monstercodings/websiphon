@@ -1,13 +1,13 @@
 package top.codings.websiphon.core.plugins;
 
+import lombok.Data;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
 import top.codings.websiphon.bean.MethodDesc;
 import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.exception.WebNetworkException;
 import top.codings.websiphon.exception.WebParseException;
-import lombok.Data;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -63,13 +63,14 @@ public class WebInterceptor implements MethodInterceptor {
             }
         }
         if (methodDesc != null) {
+            Class targetClass = target == null ? null : target.getClass();
             ReturnPoint point = new ReturnPoint();
             boolean first = true;
             do {
                 try {
                     if (point.point == ReturnPoint.Point.BEFORE || first) {
                         first = false;
-                        objects = webPlugin.before(objects, point);
+                        objects = webPlugin.before(objects, targetClass, methodDesc, point);
                         if (point.point == ReturnPoint.Point.BREAK) {
                             break;
                         }
@@ -108,7 +109,7 @@ public class WebInterceptor implements MethodInterceptor {
                     }
                     throw throwable;
                 } finally {
-                    result = webPlugin.after(o, objects, result, methodDesc, point);
+                    result = webPlugin.after(o, objects, result, targetClass, methodDesc, point);
                 }
             } while (point.point != ReturnPoint.Point.BREAK);
         } else {

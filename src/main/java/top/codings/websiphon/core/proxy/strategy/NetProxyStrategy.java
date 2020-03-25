@@ -1,13 +1,12 @@
 package top.codings.websiphon.core.proxy.strategy;
 
-import top.codings.websiphon.core.proxy.bean.ProxyExtension;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
+import top.codings.websiphon.core.proxy.bean.WebProxy;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -29,14 +28,13 @@ public class NetProxyStrategy implements ProxyStrategy {
     }
 
     @Override
-    public Proxy select(List<ProxyExtension> proxies) {
+    public WebProxy select(Collection<WebProxy> proxies) {
         if (CollectionUtils.isEmpty(proxies)) {
             return null;
         }
         long count = INDEX.getAndIncrement();
         int index = (int) (count % proxies.size());
-        ProxyExtension proxyExtension = proxies.get(index);
-        proxyExtension.invoke(true);
-        return proxyExtension.getProxy();
+        // TODO 顺序代理策略
+        return null;
     }
 }

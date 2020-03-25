@@ -61,12 +61,12 @@ public class ExtractUrlPlugin implements WebPlugin {
     }
 
     @Override
-    public Object[] before(Object[] params, ReturnPoint point) throws WebException {
+    public Object[] before(Object[] params, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
         return params;
     }
 
     @Override
-    public Object after(Object proxy, Object[] params, Object result, MethodDesc methodDesc, ReturnPoint point) throws WebException {
+    public Object after(Object proxy, Object[] params, Object result, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
         if (point.point == ReturnPoint.Point.ERROR) {
             return result;
         }

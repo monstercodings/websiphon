@@ -14,8 +14,6 @@ import top.codings.websiphon.core.pipeline.ReadWritePipeline;
 import top.codings.websiphon.core.plugins.PluginFactory;
 import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.processor.WebProcessor;
-import top.codings.websiphon.core.proxy.manager.ProxyManager;
-import top.codings.websiphon.core.requester.BasicAsyncWebRequester;
 import top.codings.websiphon.core.requester.SuperWebRequester;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.schedule.RequestScheduler;
@@ -94,12 +92,6 @@ public class BasicWebFactory implements WebFactory {
     }
 
     @Override
-    public WebFactory enableProxy(ProxyManager manager) {
-        webHandler.enableProxy(manager);
-        return this;
-    }
-
-    @Override
     public WebFactory queueMonitor(QueueMonitor.TaskHandler monitor) {
         webHandler.getQueueMonitor().setMonitor(monitor);
         return this;
@@ -116,6 +108,7 @@ public class BasicWebFactory implements WebFactory {
         scheduler = new BasicRequestScheduler(permitForHost);
         for (WebPlugin plugin : plugins) {
             plugin.setWebFactory(this);
+            plugin.init();
             for (Class targetInterface : plugin.getTargetInterface()) {
                 if (WebHandler.class.isAssignableFrom(targetInterface)) {
                     webHandler = PluginFactory.create(plugin, webHandler);
@@ -155,6 +148,7 @@ public class BasicWebFactory implements WebFactory {
         webHandler.setReadWritePipelines(readWritePipelines);
         webHandler.setScheduler(scheduler);
         webHandler.getQueueMonitor().setContext(basicCrawlerContext);
+        webHandler.setPlugins(plugins);
         basicCrawlerContext.setWebHandler(webHandler);
         basicCrawler.setContext(basicCrawlerContext);
         return basicCrawler;

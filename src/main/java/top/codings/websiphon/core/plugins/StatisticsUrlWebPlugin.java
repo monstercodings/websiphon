@@ -1,12 +1,10 @@
 package top.codings.websiphon.core.plugins;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import top.codings.websiphon.bean.*;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.exception.WebException;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 @Data
 @AllArgsConstructor
@@ -14,14 +12,14 @@ public class StatisticsUrlWebPlugin implements WebPlugin {
     private StatisticResult statisticResult;
 
     @Override
-    public Object[] before(Object[] params, ReturnPoint point) throws WebException {
+    public Object[] before(Object[] params, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
         statisticResult.TOTAL_URL_REQUEST.incrementAndGet();
         statisticResult.TOTAL_URL_REQUEST_TODAY.incrementAndGet();
         return params;
     }
 
     @Override
-    public Object after(Object proxy, Object[] params, Object result, MethodDesc methodDesc, ReturnPoint point) throws WebException {
+    public Object after(Object proxy, Object[] params, Object result, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
         if (null == result || !(result instanceof WebResponse)) {
             return result;
         }

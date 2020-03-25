@@ -64,10 +64,4 @@ public class BasicCrawlerContext implements CrawlerContext {
     public void doOnFinished(Object data) {
         webHandler.doOnFinished(data);
     }
-
-    /*@Override
-    public void close() {
-        crawler.close();
-        webHandler.close();
-    }*/
 }

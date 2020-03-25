@@ -1,6 +1,5 @@
 package top.codings.websiphon.test;
 
-import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import top.codings.websiphon.bean.BasicWebRequest;
@@ -14,9 +13,6 @@ import top.codings.websiphon.core.context.event.listener.WebAsyncEventListener;
 import top.codings.websiphon.core.plugins.ExtractUrlPlugin;
 import top.codings.websiphon.core.plugins.UrlFilterPlugin;
 import top.codings.websiphon.core.processor.WebProcessorAdapter;
-import top.codings.websiphon.core.proxy.bean.ProxyExtension;
-import top.codings.websiphon.core.proxy.manager.BasicProxyManager;
-import top.codings.websiphon.core.proxy.manager.ProxyManager;
 import top.codings.websiphon.core.support.CrawlerBuilder;
 import top.codings.websiphon.exception.WebParseException;
 import top.codings.websiphon.test.feign.CrawlManager;
@@ -34,8 +30,6 @@ public class SpiderDemo {
 //        WebRequester requester = new SeimiAgentWebRequest("http://121.201.107.77:51000");
 //        requester.setIgnoreHttpError(true);
         // 构建爬虫对象
-        ProxyManager manager = new BasicProxyManager()
-                .addProxy(new ProxyExtension("127.0.0.1", 1080));
         Crawler crawler = CrawlerBuilder.create()
 //                .addLast(requester)
                 // 配置文档处理器，用于解析返回的html并抽取你想要的信息

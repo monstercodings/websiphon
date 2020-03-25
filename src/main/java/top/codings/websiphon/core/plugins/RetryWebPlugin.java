@@ -1,12 +1,12 @@
 package top.codings.websiphon.core.plugins;
 
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.MethodDesc;
 import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebResponse;
 import top.codings.websiphon.core.requester.WebRequester;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
@@ -22,13 +22,13 @@ public class RetryWebPlugin implements WebPlugin {
     }
 
     @Override
-    public Object[] before(Object[] params, ReturnPoint point) {
+    public Object[] before(Object[] params, Class targetClass, MethodDesc methodDesc, ReturnPoint point) {
         COUNT.set(0);
         return params;
     }
 
     @Override
-    public Object after(Object proxy, Object[] params, Object result, MethodDesc methodDesc, ReturnPoint point) {
+    public Object after(Object proxy, Object[] params, Object result, Class targetClass, MethodDesc methodDesc, ReturnPoint point) {
         if (null == result) {
             return result;
         }

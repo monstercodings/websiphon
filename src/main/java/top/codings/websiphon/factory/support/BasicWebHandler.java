@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.PushResult;
 import top.codings.websiphon.bean.RateResult;
@@ -19,8 +20,7 @@ import top.codings.websiphon.core.context.event.sync.WebBeforeParseEvent;
 import top.codings.websiphon.core.context.event.sync.WebBeforeRequestEvent;
 import top.codings.websiphon.core.parser.WebParser;
 import top.codings.websiphon.core.pipeline.ReadWritePipeline;
-import top.codings.websiphon.core.proxy.ProxyPool;
-import top.codings.websiphon.core.proxy.manager.ProxyManager;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.schedule.support.BasicRequestScheduler;
 import top.codings.websiphon.exception.StopWebRequestException;
@@ -63,6 +63,8 @@ public class BasicWebHandler implements WebHandler {
     private Thread runThread;
     @Setter
     private BasicRequestScheduler scheduler;
+    @Setter
+    private List<WebPlugin> plugins;
     /**
      * 异步事件池
      */
@@ -86,10 +88,6 @@ public class BasicWebHandler implements WebHandler {
      */
     private ExecutorService parseExecutor;
     /**
-     * 代理池
-     */
-    private ProxyPool proxyPool = new ProxyPool();
-    /**
      * 速率统计
      */
     @Getter
@@ -103,7 +101,7 @@ public class BasicWebHandler implements WebHandler {
         try {
             if (request instanceof BasicWebRequest) {
                 BasicWebRequest basicWebRequest = (BasicWebRequest) request;
-                basicWebRequest.setProxy(Optional.ofNullable(basicWebRequest.getProxy()).orElse(proxyPool.select()));
+//                basicWebRequest.setProxy(Optional.ofNullable(basicWebRequest.getProxy()).orElse(proxyPool.select()));
                 basicWebRequest.setBeginAt(System.currentTimeMillis());
             }
             WebBeforeRequestEvent event = new WebBeforeRequestEvent();
@@ -196,15 +194,9 @@ public class BasicWebHandler implements WebHandler {
     }
 
     @Override
-    public void enableProxy(ProxyManager manager) {
-        proxyPool.setManager(manager);
-    }
-
-    @Override
     public void init(int networkCount, int parseCount) {
         queueMonitor.init();
         scheduler.init(queueMonitor);
-        proxyPool.init();
         rateResult.start();
         networkToken = new Semaphore(networkCount);
         parseToken = new Semaphore(parseCount);
@@ -234,7 +226,6 @@ public class BasicWebHandler implements WebHandler {
                         for (ReadWritePipeline readWritePipeline : readWritePipelines) {
                             Optional.ofNullable(readWritePipeline.read()).ifPresent(scheduler::handle);
                         }
-//                        scheduler.handle(readWritePipelines.read());
                     }
                 } catch (InterruptedException e) {
                     return;
@@ -258,7 +249,6 @@ public class BasicWebHandler implements WebHandler {
                     asyncEventExecutor.submit(() -> {
                         AllExceptionEvent allExceptionEvent = new AllExceptionEvent();
                         allExceptionEvent.setThrowable(webErrorAsyncEvent.getThrowable());
-//                        allExceptionEvent.setContext(webErrorAsyncEvent.getContext());
                         allExceptionEvent.setRequest(webErrorAsyncEvent.getRequest());
                         asyncMap.get(AllExceptionEvent.class).listen(allExceptionEvent);
                     });
@@ -276,9 +266,9 @@ public class BasicWebHandler implements WebHandler {
         if (syncMap.containsKey(event.getClass())) {
             try {
                 syncMap.get(event.getClass()).listen(event);
-            }catch (StopWebRequestException e){
+            } catch (StopWebRequestException e) {
                 throw e;
-            }catch (WebException e) {
+            } catch (WebException e) {
                 throw e;
             } catch (Exception e) {
                 WebException exception = new WebException(e);
@@ -301,9 +291,11 @@ public class BasicWebHandler implements WebHandler {
                 }
             });
         }
-        proxyPool.shutdownNow();
         asyncEventExecutor.shutdownNow();
         parseExecutor.shutdownNow();
+        if (CollectionUtils.isNotEmpty(plugins)) {
+            plugins.forEach(webPlugin -> webPlugin.close());
+        }
         if (webRequester != null) {
             webRequester.close();
         }
@@ -329,9 +321,9 @@ public class BasicWebHandler implements WebHandler {
                 WebAfterParseEvent afterParseEvent = new WebAfterParseEvent();
                 afterParseEvent.setRequest(request);
                 postSyncEvent(afterParseEvent);
-            }catch (StopWebRequestException e){
+            } catch (StopWebRequestException e) {
                 // 停止异常不做处理
-            }catch (WebException e) {
+            } catch (WebException e) {
                 WebParseExceptionEvent exceptionEvent = new WebParseExceptionEvent();
                 exceptionEvent.setRequest(request);
                 exceptionEvent.setThrowable(e);

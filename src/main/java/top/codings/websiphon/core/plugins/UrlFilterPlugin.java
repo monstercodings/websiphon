@@ -1,15 +1,13 @@
 package top.codings.websiphon.core.plugins;
 
+import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnels;
+import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.MethodDesc;
-import top.codings.websiphon.bean.PushResult;
 import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.schedule.RequestScheduler;
 import top.codings.websiphon.exception.WebException;
-import top.codings.websiphon.factory.bean.WebHandler;
-import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnels;
-import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.Charset;
 import java.util.function.Predicate;
@@ -52,7 +50,7 @@ public class UrlFilterPlugin<T extends WebRequest> implements WebPlugin {
     }
 
     @Override
-    public Object[] before(Object[] params, ReturnPoint point) throws WebException {
+    public Object[] before(Object[] params, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
         if (params == null || params.length != 1) {
             return params;
         }
@@ -71,7 +69,7 @@ public class UrlFilterPlugin<T extends WebRequest> implements WebPlugin {
     }
 
     @Override
-    public Object after(Object proxy, Object[] params, Object result, MethodDesc methodDesc, ReturnPoint point) throws WebException {
+    public Object after(Object proxy, Object[] params, Object result, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
         booleanThreadLocal.set(true);
         return result;
         /*try {
