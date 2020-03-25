@@ -17,8 +17,8 @@ public class BasicCrawlerContext implements CrawlerContext {
     private BasicCrawler crawler;
     private long beginAt;
     private long endAt;
-    private int networkThreadSize = 100;
-    private int parseThreadSize = 100;
+    private int networkThreadSize = 10;
+    private int parseThreadSize = networkThreadSize * 10;
     private BasicWebHandler webHandler;
     private volatile boolean running = false;
     private String id;

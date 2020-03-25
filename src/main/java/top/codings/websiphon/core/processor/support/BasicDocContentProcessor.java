@@ -19,16 +19,16 @@ public class BasicDocContentProcessor extends WebProcessorAdapter<WebRequestDoc>
     private double percent = 0.5d;
 
     @Override
-    public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
+    public void process(WebRequestDoc request) throws WebParseException {
         ResultDoc result = request.getResultDoc();
         result.setContentEle(getContent(Rater.getMaxScoreElement(Jsoup.parse(request.response().getHtml()).body())));
         if (result.getContentEle() == null) {
-            fireProcess(request, context);
+            fireProcess(request);
             return;
         }
         result.setContentCss(JsoupUtils.getPath(result.getContentEle()));
         result.setContentStr(result.getContentEle().text());
-        fireProcess(request, context);
+        fireProcess(request);
     }
 
     private Element getContent(Element max) {

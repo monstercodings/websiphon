@@ -2,7 +2,6 @@ package top.codings.websiphon.core.parser;
 
 import top.codings.websiphon.bean.WebProcessorDefinition;
 import top.codings.websiphon.bean.WebRequest;
-import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.WebType;
 import top.codings.websiphon.core.processor.WebProcessor;
 import top.codings.websiphon.exception.WebParseException;
@@ -18,7 +17,7 @@ public interface WebParser<IN extends WebRequest> extends WebType {
      *
      * @return
      */
-    void parse(IN param, CrawlerContext context) throws WebParseException;
+    void parse(IN param) throws WebParseException;
 
     /**
      * 设置处理类

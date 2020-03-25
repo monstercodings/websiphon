@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import top.codings.websiphon.bean.*;
-import top.codings.websiphon.core.context.BasicCrawlerContext;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.async.WebExceptionEvent;
 import top.codings.websiphon.core.context.event.sync.WebLinkEvent;
@@ -70,7 +69,7 @@ public class ExtractUrlPlugin implements WebPlugin {
         if (point.point == ReturnPoint.Point.ERROR) {
             return result;
         }
-        if (params.length == 2 && WebRequest.class.isAssignableFrom(params[0].getClass())) {
+        if (params.length == 1 && WebRequest.class.isAssignableFrom(params[0].getClass())) {
             WebRequest request = (WebRequest) params[0];
             /*if (request.getMaxDepth() > 0 && request.getDepth() >= request.getMaxDepth()) {
                 return result;
@@ -134,8 +133,7 @@ public class ExtractUrlPlugin implements WebPlugin {
                     urls.add(url);
                 }
             });
-            BasicCrawlerContext context = (BasicCrawlerContext) params[1];
-//                log.debug("扩散总数 -> {}", urls.size());
+            CrawlerContext context = request.context();
             urls.forEach(url -> {
                 try {
                     PushResult pushResult;
@@ -178,6 +176,6 @@ public class ExtractUrlPlugin implements WebPlugin {
 
     @Override
     public MethodDesc[] getMethods() {
-        return new MethodDesc[]{new MethodDesc("parse", new Class[]{WebRequest.class, CrawlerContext.class})};
+        return new MethodDesc[]{new MethodDesc("parse", new Class[]{WebRequest.class})};
     }
 }

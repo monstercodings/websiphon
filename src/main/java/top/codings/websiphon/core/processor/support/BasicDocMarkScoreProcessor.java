@@ -1,20 +1,19 @@
 package top.codings.websiphon.core.processor.support;
 
-import top.codings.websiphon.bean.WebRequestDoc;
-import top.codings.websiphon.core.context.CrawlerContext;
-import top.codings.websiphon.core.processor.WebProcessorAdapter;
-import top.codings.websiphon.exception.WebParseException;
-import top.codings.websiphon.util.Rater;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import top.codings.websiphon.bean.WebRequestDoc;
+import top.codings.websiphon.core.processor.WebProcessorAdapter;
+import top.codings.websiphon.exception.WebParseException;
+import top.codings.websiphon.util.Rater;
 
 public class BasicDocMarkScoreProcessor extends WebProcessorAdapter<WebRequestDoc> {
     @Override
-    public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
+    public void process(WebRequestDoc request) throws WebParseException {
         Element body = Jsoup.parse(request.response().getHtml()).body();
         doScoreToElement(body);
-        fireProcess(request, context);
+        fireProcess(request);
     }
 
     private int doScoreToElement(Element element) {

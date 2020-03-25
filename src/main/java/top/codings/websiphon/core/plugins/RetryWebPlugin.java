@@ -12,6 +12,7 @@ import java.util.Map;
 
 @Data
 @Slf4j
+@Deprecated
 public class RetryWebPlugin implements WebPlugin {
     private final static ThreadLocal<Integer> COUNT = ThreadLocal.withInitial(() -> 0);
     private int retry;

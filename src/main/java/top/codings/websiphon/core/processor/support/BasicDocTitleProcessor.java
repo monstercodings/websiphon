@@ -8,7 +8,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import top.codings.websiphon.bean.ResultDoc;
 import top.codings.websiphon.bean.WebRequestDoc;
-import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.exception.WebParseException;
 import top.codings.websiphon.util.JsoupUtils;
@@ -19,7 +18,7 @@ public class BasicDocTitleProcessor extends WebProcessorAdapter<WebRequestDoc> {
     private int maxTier = 6;
 
     @Override
-    public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
+    public void process(WebRequestDoc request) throws WebParseException {
         int tier = 0;
         ResultDoc result = request.getResultDoc();
         Element element = result.getContentEle();
@@ -35,7 +34,7 @@ public class BasicDocTitleProcessor extends WebProcessorAdapter<WebRequestDoc> {
                 for (int i = 1; i < 7; i++) {
                     Elements hTitles = now.getElementsByTag("h" + i);
                     if (setTitle(result, hTitles)) {
-                        fireProcess(request, context);
+                        fireProcess(request);
                         return;
                     }
                 }
@@ -47,7 +46,7 @@ public class BasicDocTitleProcessor extends WebProcessorAdapter<WebRequestDoc> {
         for (int i = 1; i < 7; i++) {
             Elements hTitles = result.getContentEle().getElementsByTag("h" + i);
             if (setTitle(result, hTitles)) {
-                fireProcess(request, context);
+                fireProcess(request);
                 return;
             }
         }
@@ -58,13 +57,13 @@ public class BasicDocTitleProcessor extends WebProcessorAdapter<WebRequestDoc> {
                 result.setTitleEle(titleEle);
                 result.setTitleCss(JsoupUtils.getPath(titleEle));
                 result.setTitleStr(title);
-                fireProcess(request, context);
+                fireProcess(request);
                 return;
             }
         }
         Element contentEle = result.getContentEle();
         result.setTitleStr(contentEle.text().substring(0, contentEle.text().length() > 20 ? 20 : contentEle.text().length()));
-        fireProcess(request, context);
+        fireProcess(request);
     }
 
     private boolean setTitle(ResultDoc result, Elements hTitles) {

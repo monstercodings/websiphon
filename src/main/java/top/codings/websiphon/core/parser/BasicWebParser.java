@@ -2,7 +2,6 @@ package top.codings.websiphon.core.parser;
 
 import top.codings.websiphon.bean.WebProcessorDefinition;
 import top.codings.websiphon.bean.WebRequest;
-import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.processor.WebProcessor;
 import top.codings.websiphon.exception.WebParseException;
 
@@ -12,14 +11,14 @@ public class BasicWebParser implements WebParser {
     private List<WebProcessorDefinition> processorDefinitions = new LinkedList<>();
 
     @Override
-    public void parse(WebRequest param, CrawlerContext context) throws WebParseException {
+    public void parse(WebRequest param) throws WebParseException {
         Iterator<WebProcessorDefinition> iterator = processorDefinitions.iterator();
         while (iterator.hasNext()) {
             WebProcessorDefinition definition = iterator.next();
             if (definition.getType().isAssignableFrom(param.getClass())) {
-                definition.getProcessor().process(param, context);
+                definition.getProcessor().process(param);
             } else {
-                definition.getProcessor().fireProcess(param, context);
+                definition.getProcessor().fireProcess(param);
             }
             if (!WebProcessor.BOOLEAN_THREAD_LOCAL.get()) {
                 break;

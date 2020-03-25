@@ -8,7 +8,6 @@ import org.jsoup.select.Elements;
 import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.Crawler;
-import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
 import top.codings.websiphon.core.context.event.listener.WebAsyncEventListener;
 import top.codings.websiphon.core.plugins.RateLimiterPlugin;
@@ -31,7 +30,7 @@ public class LagouSpider {
                 // 配置文档处理器，用于解析返回的html并抽取你想要的信息
                 .addLast(new WebProcessorAdapter<WebRequest>() {
                     @Override
-                    public void process(WebRequest request, CrawlerContext context) throws WebParseException {
+                    public void process(WebRequest request) throws WebParseException {
                         pageCount.getAndIncrement();
                         if (!request.response().getContentType().startsWith("text")) {
                             return;
@@ -57,7 +56,7 @@ public class LagouSpider {
 //                        log.debug("收到响应 -> {} | {}", Jsoup.parse(request.getResponse().getHtml()).title(), request.getUrl());
 //                        log.debug("{}", request.getResponse().getHtml());
                         // 显式调用该方法才会将处理事件传递到下一个处理器中继续处理
-                        fireProcess(request, context);
+                        fireProcess(request);
                     }
                 })
                 .addLast(new UrlFilterPlugin())

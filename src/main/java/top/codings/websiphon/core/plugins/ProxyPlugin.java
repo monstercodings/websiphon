@@ -33,9 +33,6 @@ public class ProxyPlugin implements WebPlugin {
 
     @Override
     public Object[] before(Object[] params, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
-        if (!(params != null && params.length == 1 && params[0] instanceof BasicWebRequest)) {
-            return params;
-        }
         BasicWebRequest request = (BasicWebRequest) params[0];
         if (request.getProxy() == null) {
             WebProxy webProxy = pool.select();

@@ -1,24 +1,23 @@
 package top.codings.websiphon.core.processor.support;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.nodes.Element;
 import top.codings.websiphon.bean.ResultDoc;
 import top.codings.websiphon.bean.WebRequestDoc;
-import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.exception.WebParseException;
 import top.codings.websiphon.util.DateProcessUtils;
 import top.codings.websiphon.util.JsoupUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jsoup.nodes.Element;
 
 import java.util.Date;
 
 public class BasicDocPubdateProcessor extends WebProcessorAdapter<WebRequestDoc> {
     @Override
-    public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
+    public void process(WebRequestDoc request) throws WebParseException {
         int tier = 0;
         Element element = request.getResultDoc().getContentEle();
         if (element == null) {
-            fireProcess(request, context);
+            fireProcess(request);
             return;
         }
         //往外找6层
@@ -30,7 +29,7 @@ public class BasicDocPubdateProcessor extends WebProcessorAdapter<WebRequestDoc>
                 }
                 Date date = DateProcessUtils.process(string);
                 if (setDate(request.getResultDoc(), now, string, date)) {
-                    fireProcess(request, context);
+                    fireProcess(request);
                     return;
                 }
 
@@ -49,11 +48,11 @@ public class BasicDocPubdateProcessor extends WebProcessorAdapter<WebRequestDoc>
             }
             Date date = DateProcessUtils.process(string);
             if (setDate(request.getResultDoc(), now, string, date)) {
-                fireProcess(request, context);
+                fireProcess(request);
                 return;
             }
         }
-        fireProcess(request, context);
+        fireProcess(request);
     }
 
     private boolean setDate(ResultDoc result, Element now, String string, Date date) {

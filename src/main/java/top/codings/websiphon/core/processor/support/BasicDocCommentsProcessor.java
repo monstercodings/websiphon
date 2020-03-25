@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class BasicDocCommentsProcessor extends WebProcessorAdapter<WebRequestDoc> {
     @Override
-    public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
+    public void process(WebRequestDoc request) throws WebParseException {
         Document document = Jsoup.parse(request.response().getHtml());
         Map<String, Integer> map = new HashMap<>();
         String path = null;
@@ -55,6 +55,6 @@ public class BasicDocCommentsProcessor extends WebProcessorAdapter<WebRequestDoc
             });
             request.getResultDoc().setComments(comments);
         }
-        fireProcess(request, context);
+        fireProcess(request);
     }
 }

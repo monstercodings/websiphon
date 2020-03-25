@@ -1,21 +1,19 @@
 package top.codings.websiphon.core.processor.support;
 
+import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
 import top.codings.websiphon.bean.ResultDoc;
 import top.codings.websiphon.bean.WebRequestDoc;
-import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.exception.WebParseException;
 import top.codings.websiphon.util.ContentExtractor;
-import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 @Slf4j
 public class DmicNewsExtractorProcessor extends WebProcessorAdapter<WebRequestDoc> {
     @Override
-    public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
+    public void process(WebRequestDoc request) throws WebParseException {
         ResultDoc resultDoc = request.getResultDoc();
         try {
             ContentExtractor.News news = ContentExtractor.getNewsByDoc(Jsoup.parse(request.response().getHtml()));
@@ -31,6 +29,6 @@ public class DmicNewsExtractorProcessor extends WebProcessorAdapter<WebRequestDo
         } catch (Exception e) {
             throw new WebParseException(e);
         }
-        fireProcess(request, context);
+        fireProcess(request);
     }
 }

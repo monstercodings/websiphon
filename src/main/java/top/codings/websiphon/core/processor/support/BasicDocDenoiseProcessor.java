@@ -5,7 +5,6 @@ import lombok.Setter;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import top.codings.websiphon.bean.WebRequestDoc;
-import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.exception.WebParseException;
 
@@ -30,7 +29,7 @@ public class BasicDocDenoiseProcessor extends WebProcessorAdapter<WebRequestDoc>
     }
 
     @Override
-    public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
+    public void process(WebRequestDoc request) throws WebParseException {
         Document document = Jsoup.parse(request.response().getHtml());
 //        document.getElementsByTag("a").attr("href", "javascript:void(0)").remove();
         document.getElementsByAttributeValue("display", "none").remove();
@@ -38,6 +37,6 @@ public class BasicDocDenoiseProcessor extends WebProcessorAdapter<WebRequestDoc>
         document.getElementsByAttributeValueContaining("style", "overflow: hidden").remove();
         excludeTags.forEach(s -> document.getElementsByTag(s).remove());
         excludePaths.forEach(s -> document.select(s).remove());
-        fireProcess(request, context);
+        fireProcess(request);
     }
 }

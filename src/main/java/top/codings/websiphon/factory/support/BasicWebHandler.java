@@ -312,7 +312,7 @@ public class BasicWebHandler implements WebHandler {
                 WebBeforeParseEvent event = new WebBeforeParseEvent();
                 event.setRequest(request);
                 postSyncEvent(event);
-                webParser.parse(request, request.context());
+                webParser.parse(request);
                 if (request instanceof BasicWebRequest) {
                     ((BasicWebRequest) request).setEndAt(System.currentTimeMillis());
 

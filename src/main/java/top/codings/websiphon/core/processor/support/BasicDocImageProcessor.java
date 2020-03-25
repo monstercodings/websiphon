@@ -9,7 +9,6 @@ import org.jsoup.select.Elements;
 import top.codings.websiphon.bean.ResultDoc;
 import top.codings.websiphon.bean.WebImage;
 import top.codings.websiphon.bean.WebRequestDoc;
-import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.exception.WebParseException;
 import top.codings.websiphon.util.HttpOperator;
@@ -22,15 +21,15 @@ public class BasicDocImageProcessor extends WebProcessorAdapter<WebRequestDoc> {
     private String className = "basic-default-image";
 
     @Override
-    public void process(WebRequestDoc request, CrawlerContext context) throws WebParseException {
+    public void process(WebRequestDoc request) throws WebParseException {
         ResultDoc result = request.getResultDoc();
         if (result.getContentEle() == null) {
-            fireProcess(request, context);
+            fireProcess(request);
             return;
         }
         Elements imgElements = result.getContentEle().getElementsByTag("img");
         if (imgElements.isEmpty()) {
-            fireProcess(request, context);
+            fireProcess(request);
             return;
         }
         imgElements.forEach(img -> {
@@ -43,6 +42,6 @@ public class BasicDocImageProcessor extends WebProcessorAdapter<WebRequestDoc> {
             webImage.setFullTag(String.format("<img class='%s' src='%s' />", className, webImage.getSrc()));
             result.getImages().add(webImage);
         });
-        fireProcess(request, context);
+        fireProcess(request);
     }
 }
