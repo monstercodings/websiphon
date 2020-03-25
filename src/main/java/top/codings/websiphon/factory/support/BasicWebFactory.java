@@ -10,13 +10,13 @@ import top.codings.websiphon.core.context.event.listener.WebAsyncEventListener;
 import top.codings.websiphon.core.context.event.listener.WebSyncEventListener;
 import top.codings.websiphon.core.parser.BasicWebParser;
 import top.codings.websiphon.core.parser.WebParser;
-import top.codings.websiphon.core.pipeline.BasicReadWritePipeline;
 import top.codings.websiphon.core.pipeline.ReadWritePipeline;
 import top.codings.websiphon.core.plugins.PluginFactory;
 import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.processor.WebProcessor;
 import top.codings.websiphon.core.proxy.manager.ProxyManager;
 import top.codings.websiphon.core.requester.BasicAsyncWebRequester;
+import top.codings.websiphon.core.requester.SuperWebRequester;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.schedule.RequestScheduler;
 import top.codings.websiphon.core.schedule.support.BasicRequestScheduler;
@@ -35,7 +35,7 @@ public class BasicWebFactory implements WebFactory {
     private List<WebPlugin> plugins = new LinkedList<>();
     private List<WebProcessorDefinition> processorDefinitions = new LinkedList<>();
     private WebParser webParser;
-    private ReadWritePipeline readWritePipeline;
+    private List<ReadWritePipeline> readWritePipelines = new LinkedList<>();
     private BasicRequestScheduler scheduler;
     private int permitForHost = 2;
 
@@ -78,7 +78,7 @@ public class BasicWebFactory implements WebFactory {
         } else if ((type instanceof WebPlugin)) {
             plugins.add((WebPlugin) type);
         } else if (type instanceof ReadWritePipeline) {
-            readWritePipeline = (ReadWritePipeline) type;
+            readWritePipelines.add((ReadWritePipeline) type);
         } else if (type instanceof WebProcessor) {
             WebProcessor processor = (WebProcessor) type;
             WebProcessorDefinition definition = new WebProcessorDefinition();
@@ -108,12 +108,8 @@ public class BasicWebFactory implements WebFactory {
     @Override
     public Crawler build() {
         if (requester == null) {
-            requester = new BasicAsyncWebRequester();
+            requester = new SuperWebRequester();
         }
-        if (readWritePipeline == null) {
-            readWritePipeline = new BasicReadWritePipeline();
-        }
-        readWritePipeline.init();
         if (webParser == null) {
             webParser = new BasicWebParser();
         }
@@ -121,22 +117,27 @@ public class BasicWebFactory implements WebFactory {
         for (WebPlugin plugin : plugins) {
             plugin.setWebFactory(this);
             for (Class targetInterface : plugin.getTargetInterface()) {
-                if (targetInterface.isAssignableFrom(WebHandler.class)) {
+                if (WebHandler.class.isAssignableFrom(targetInterface)) {
                     webHandler = PluginFactory.create(plugin, webHandler);
                 }
-                if (targetInterface.isAssignableFrom(requester.getClass())) {
+                if (WebRequester.class.isAssignableFrom(targetInterface)) {
                     requester = PluginFactory.create(plugin, requester);
                 }
-                if (targetInterface.isAssignableFrom(WebParser.class)) {
+                if (WebParser.class.isAssignableFrom(targetInterface)) {
                     webParser = PluginFactory.create(plugin, webParser);
                 }
-                if (targetInterface.isAssignableFrom(ReadWritePipeline.class)) {
-                    readWritePipeline = PluginFactory.create(plugin, readWritePipeline);
+                if (ReadWritePipeline.class.isAssignableFrom(targetInterface)) {
+                    readWritePipelines.replaceAll(pipeline -> {
+                        if (targetInterface.isAssignableFrom(pipeline.getClass())) {
+                            return PluginFactory.create(plugin, pipeline);
+                        }
+                        return pipeline;
+                    });
                 }
-                if (targetInterface.isAssignableFrom(CrawlerContext.class)) {
+                if (CrawlerContext.class.isAssignableFrom(targetInterface)) {
                     basicCrawlerContext = PluginFactory.create(plugin, basicCrawlerContext);
                 }
-                if (targetInterface.isAssignableFrom(RequestScheduler.class)) {
+                if (RequestScheduler.class.isAssignableFrom(targetInterface)) {
                     scheduler = PluginFactory.create(plugin, scheduler);
                 }
                 for (WebProcessorDefinition processorDefinition : processorDefinitions) {
@@ -151,7 +152,7 @@ public class BasicWebFactory implements WebFactory {
         processorDefinitions.forEach(definition -> webParser.addProcessor(definition));
         webHandler.setWebRequester(requester);
         webHandler.setWebParser(webParser);
-        webHandler.setReadWritePipeline(readWritePipeline);
+        webHandler.setReadWritePipelines(readWritePipelines);
         webHandler.setScheduler(scheduler);
         webHandler.getQueueMonitor().setContext(basicCrawlerContext);
         basicCrawlerContext.setWebHandler(webHandler);

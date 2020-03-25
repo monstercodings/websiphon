@@ -5,27 +5,29 @@ import top.codings.websiphon.bean.PushResult;
 import top.codings.websiphon.bean.WebRequest;
 
 import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.Semaphore;
 
 @Slf4j
 public abstract class ReadWritePipelineAdapter<T extends WebRequest, P> implements ReadWritePipeline<T, P> {
+    protected static Semaphore taskToken = new Semaphore(0);
     protected LinkedTransferQueue<T> queue = new LinkedTransferQueue();
 
     @Override
     public T read() throws InterruptedException {
-        return queue.take();
+        taskToken.acquire();
+        return queue.poll();
     }
 
     @Override
     public PushResult write(T webRequest) throws InterruptedException {
-        queue.transfer(webRequest);
-        return PushResult.SUCCESS;
-        /*boolean success = queue.offer(webRequest);
+        /*queue.transfer(webRequest);
+        return PushResult.SUCCESS;*/
+        boolean success = queue.offer(webRequest);
         if (success) {
-            log.debug("推送完成");
+            taskToken.release();
             return PushResult.SUCCESS;
         }
-        log.debug("推送失败");
-        return PushResult.FULL_QUEUE;*/
+        return PushResult.FULL_QUEUE;
     }
 
     @Override

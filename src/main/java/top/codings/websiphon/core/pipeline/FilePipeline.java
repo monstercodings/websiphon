@@ -1,5 +1,6 @@
 package top.codings.websiphon.core.pipeline;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.BasicWebRequest;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Slf4j
+@NoArgsConstructor
 public class FilePipeline extends ReadWritePipelineAdapter<BasicWebRequest, String> {
     protected String filePath;
     protected String charset;

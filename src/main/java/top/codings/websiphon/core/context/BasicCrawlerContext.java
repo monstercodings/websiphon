@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.RateResult;
-import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
 import top.codings.websiphon.core.context.event.WebSyncEvent;
 import top.codings.websiphon.core.support.BasicCrawler;
@@ -45,8 +44,8 @@ public class BasicCrawlerContext implements CrawlerContext {
 
     @Override
     public void clearTask() {
-        if (webHandler.getReadWritePipeline() != null) {
-            webHandler.getReadWritePipeline().clear();
+        if (webHandler.getReadWritePipelines() != null) {
+            webHandler.getReadWritePipelines().clear();
         }
     }
 

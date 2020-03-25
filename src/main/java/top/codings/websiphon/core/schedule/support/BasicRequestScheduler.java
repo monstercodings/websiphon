@@ -61,6 +61,15 @@ public class BasicRequestScheduler implements RequestScheduler {
     }
 
     @Override
+    public void release(WebRequest request) {
+        HttpOperator.HttpProtocol protocol = HttpOperator.resolve(request.uri());
+        HostAndTask hostAndTask = hostAndTasks.get(protocol.getHost());
+        if (null != hostAndTask) {
+            hostAndTask.token.release();
+        }
+    }
+
+    @Override
     public WebRequest take() throws InterruptedException {
         return tasks.take();
     }
@@ -76,7 +85,6 @@ public class BasicRequestScheduler implements RequestScheduler {
                 continue;
             }
             WebRequest request = hostAndTask.queue.poll();
-            request.token(hostAndTask.token);
             tasks.offer(request);
             next = true;
         }

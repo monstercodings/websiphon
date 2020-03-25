@@ -31,6 +31,7 @@ import top.codings.websiphon.factory.bean.WebHandler;
 import top.codings.websiphon.operation.QueueMonitor;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
@@ -52,7 +53,7 @@ public class BasicWebHandler implements WebHandler {
     private WebParser webParser;
     @Getter
     @Setter
-    private ReadWritePipeline readWritePipeline;
+    private List<ReadWritePipeline> readWritePipelines;
     private Semaphore networkToken;
     private Semaphore parseToken;
     @Getter
@@ -129,6 +130,7 @@ public class BasicWebHandler implements WebHandler {
             event.setThrowable(e);
             postAsyncEvent(event);
         }
+        scheduler.release(request);
         networkToken.release();
         queueMonitor.decrement(request);
     }
@@ -181,9 +183,11 @@ public class BasicWebHandler implements WebHandler {
     public void doOnFinished(Object data) {
         networkToken.release();
         if (data instanceof WebRequest) {
+            scheduler.release((WebRequest) data);
             rateResult.incrementResult((WebRequest) data);
             handleSuccessd((WebRequest) data);
         } else if (data instanceof WebErrorAsyncEvent) {
+            scheduler.release(((WebErrorAsyncEvent) data).getRequest());
             rateResult.incrementResult(((WebErrorAsyncEvent) data).getRequest());
             handleFailed((WebErrorAsyncEvent) data);
         } else {
@@ -222,11 +226,15 @@ public class BasicWebHandler implements WebHandler {
         // 设置为守护线程
         runThread.setDaemon(true);
         runThread.start();
-        if (readWritePipeline != null) {
+        if (readWritePipelines != null && !readWritePipelines.isEmpty()) {
+            readWritePipelines.forEach(readWritePipeline -> readWritePipeline.init());
             Thread transfer = new Thread(() -> {
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
-                        scheduler.handle(readWritePipeline.read());
+                        for (ReadWritePipeline readWritePipeline : readWritePipelines) {
+                            Optional.ofNullable(readWritePipeline.read()).ifPresent(scheduler::handle);
+                        }
+//                        scheduler.handle(readWritePipelines.read());
                     }
                 } catch (InterruptedException e) {
                     return;
@@ -268,7 +276,9 @@ public class BasicWebHandler implements WebHandler {
         if (syncMap.containsKey(event.getClass())) {
             try {
                 syncMap.get(event.getClass()).listen(event);
-            } catch (WebException e) {
+            }catch (StopWebRequestException e){
+                throw e;
+            }catch (WebException e) {
                 throw e;
             } catch (Exception e) {
                 WebException exception = new WebException(e);
@@ -282,11 +292,14 @@ public class BasicWebHandler implements WebHandler {
     @Override
     public void close() throws Exception {
         rateResult.close();
-        /*if (runThread != null) {
-            runThread.interrupt();
-        }*/
-        if (null != readWritePipeline) {
-            readWritePipeline.close();
+        if (null != readWritePipelines) {
+            readWritePipelines.forEach(readWritePipeline -> {
+                try {
+                    readWritePipeline.close();
+                } catch (Exception e) {
+                    log.error("关闭管道异常", e);
+                }
+            });
         }
         proxyPool.shutdownNow();
         asyncEventExecutor.shutdownNow();
@@ -316,7 +329,9 @@ public class BasicWebHandler implements WebHandler {
                 WebAfterParseEvent afterParseEvent = new WebAfterParseEvent();
                 afterParseEvent.setRequest(request);
                 postSyncEvent(afterParseEvent);
-            } catch (WebException e) {
+            }catch (StopWebRequestException e){
+                // 停止异常不做处理
+            }catch (WebException e) {
                 WebParseExceptionEvent exceptionEvent = new WebParseExceptionEvent();
                 exceptionEvent.setRequest(request);
                 exceptionEvent.setThrowable(e);

@@ -7,7 +7,6 @@ import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
 
 import java.net.Proxy;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 
 @Setter
 public class BasicWebRequest implements WebRequest {
@@ -26,7 +25,6 @@ public class BasicWebRequest implements WebRequest {
     protected long endAt;
     @Getter
     protected String charset;
-    protected Semaphore token;
 
     @Override
     public String uri() {
@@ -64,27 +62,15 @@ public class BasicWebRequest implements WebRequest {
     }
 
     @Override
-    public void token(Semaphore token) {
-        this.token = token;
-    }
-
-    @Override
     public void succeed() {
-        token.release();
         context.doOnFinished(this);
     }
 
     @Override
     public void failed(Throwable throwable) {
-        token.release();
         WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
         event.setThrowable(throwable);
         event.setRequest(this);
         context.doOnFinished(event);
-    }
-
-    @Override
-    public void discard() {
-        token.release();
     }
 }
