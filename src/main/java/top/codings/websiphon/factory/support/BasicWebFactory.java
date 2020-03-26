@@ -21,7 +21,6 @@ import top.codings.websiphon.core.schedule.support.BasicRequestScheduler;
 import top.codings.websiphon.core.support.BasicCrawler;
 import top.codings.websiphon.factory.WebFactory;
 import top.codings.websiphon.factory.bean.WebHandler;
-import top.codings.websiphon.operation.QueueMonitor;
 import top.codings.websiphon.util.ParameterizedTypeUtils;
 
 import java.util.LinkedList;
@@ -92,12 +91,6 @@ public class BasicWebFactory implements WebFactory {
     }
 
     @Override
-    public WebFactory queueMonitor(QueueMonitor.TaskHandler monitor) {
-        webHandler.getQueueMonitor().setMonitor(monitor);
-        return this;
-    }
-
-    @Override
     public Crawler build() {
         if (requester == null) {
             requester = new SuperWebRequester();
@@ -147,7 +140,6 @@ public class BasicWebFactory implements WebFactory {
         webHandler.setWebParser(webParser);
         webHandler.setReadWritePipelines(readWritePipelines);
         webHandler.setScheduler(scheduler);
-        webHandler.getQueueMonitor().setContext(basicCrawlerContext);
         webHandler.setPlugins(plugins);
         basicCrawlerContext.setWebHandler(webHandler);
         basicCrawler.setContext(basicCrawlerContext);

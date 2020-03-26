@@ -1,10 +1,12 @@
 package top.codings.websiphon.core.plugins;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import top.codings.websiphon.bean.MethodDesc;
 import top.codings.websiphon.bean.ReturnPoint;
+import top.codings.websiphon.exception.StopWebRequestException;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.exception.WebNetworkException;
 import top.codings.websiphon.exception.WebParseException;
@@ -13,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 @Data
+@Slf4j
 public class WebInterceptor implements MethodInterceptor {
     private boolean real;
     private Object target;
@@ -84,6 +87,8 @@ public class WebInterceptor implements MethodInterceptor {
                             result = method.invoke(target, objects);
                         }
                     }
+                } catch (StopWebRequestException e) {
+                    throw e;
                 } catch (Throwable throwable) {
                     point.point = ReturnPoint.Point.ERROR;
                     if (throwable instanceof InvocationTargetException) {

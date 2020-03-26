@@ -57,23 +57,6 @@ public class SpiderDemo {
 //                        log.error("请求网络异常", event.getThrowable());
                     }
                 })
-                .queueMonitor((ctx, requestHolder, force) -> {
-                    log.debug("采集完成");
-                    urlFilterPlugin.clear();
-                    /*CrawlManager.CrawlTask task;
-                    do {
-                        log.debug("尝试拉取爬虫任务");
-                        task = crawlManager.getTask();
-                    } while (task.getCode() != 0);
-                    WebRequest request = new WebRequest();
-                    request.setUrl(task.getData().getHomepage());
-                    request.setMaxDepth(1);
-                    // 设置超时
-                    request.setTimeout(6000);
-                    // 将任务推送给爬虫
-                    PushResult pushResult = ctx.getCrawler().push(request);
-                    log.debug("推送结果 -> {}", pushResult.value);*/
-                })
 //                .enableProxy(manager)
                 // 设置网络请求最大并发数
                 .setNetworkThread(10)

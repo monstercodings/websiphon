@@ -5,7 +5,6 @@ import top.codings.websiphon.core.context.WebType;
 import top.codings.websiphon.core.context.event.listener.WebAsyncEventListener;
 import top.codings.websiphon.core.context.event.listener.WebSyncEventListener;
 import top.codings.websiphon.factory.support.BasicWebFactory;
-import top.codings.websiphon.operation.QueueMonitor;
 
 import java.util.List;
 
@@ -66,11 +65,6 @@ public class CrawlerBuilder {
 
     public CrawlerBuilder setParseThread(int size) {
         webFactory.setParseThread(size);
-        return this;
-    }
-
-    public CrawlerBuilder queueMonitor(QueueMonitor.TaskHandler monitor) {
-        webFactory.queueMonitor(monitor);
         return this;
     }
 

@@ -28,7 +28,6 @@ import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.exception.WebNetworkException;
 import top.codings.websiphon.factory.bean.CrawlThreadPoolExecutor;
 import top.codings.websiphon.factory.bean.WebHandler;
-import top.codings.websiphon.operation.QueueMonitor;
 
 import java.util.HashMap;
 import java.util.List;
@@ -43,8 +42,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class BasicWebHandler implements WebHandler {
     private LinkedTransferQueue<RespRunner> respQueue = new LinkedTransferQueue<>();
-    @Getter
-    private QueueMonitor queueMonitor = new QueueMonitor();
     @Getter
     @Setter
     private WebRequester webRequester;
@@ -130,7 +127,6 @@ public class BasicWebHandler implements WebHandler {
         }
         scheduler.release(request);
         networkToken.release();
-        queueMonitor.decrement(request);
     }
 
     @Override
@@ -150,30 +146,11 @@ public class BasicWebHandler implements WebHandler {
     }
 
     public void handleSuccessd(WebRequest request) {
-        /*if (readWritePipeline instanceof BasicReadWritePipeline) {
-            ((BasicReadWritePipeline) readWritePipeline).eliminateForRequest(request);
-        }
-        WebResponse response = request.response();
-        if (request == null) {
-            log.warn("任务尚未进行 -> {}", request.getUrl());
-            return;
-        } else if (response == null) {
-            queueMonitor.decrement(request);
-            return;
-        } else if (response.isRedirect() && response.getResult() == null) {
-            queueMonitor.decrement(request);
-            return;
-        } else if (response.getErrorEvent() != null) {
-            queueMonitor.decrement(request);
-            postAsyncEvent(request.getResponse().getErrorEvent());
-            return;
-        }*/
         respQueue.offer(new RespRunner(request, parseToken));
     }
 
     public void handleFailed(WebErrorAsyncEvent event) {
         WebRequest request = event.getRequest();
-        queueMonitor.decrement(request);
         postAsyncEvent(event);
     }
 
@@ -195,8 +172,7 @@ public class BasicWebHandler implements WebHandler {
 
     @Override
     public void init(int networkCount, int parseCount) {
-        queueMonitor.init();
-        scheduler.init(queueMonitor);
+        scheduler.init();
         rateResult.start();
         networkToken = new Semaphore(networkCount);
         parseToken = new Semaphore(parseCount);
@@ -315,7 +291,6 @@ public class BasicWebHandler implements WebHandler {
                 webParser.parse(request);
                 if (request instanceof BasicWebRequest) {
                     ((BasicWebRequest) request).setEndAt(System.currentTimeMillis());
-
                 }
 //                rateResult.addSuccess(request.getEndAt() - request.getBeginAt());
                 WebAfterParseEvent afterParseEvent = new WebAfterParseEvent();
@@ -334,7 +309,6 @@ public class BasicWebHandler implements WebHandler {
                 exceptionEvent.setThrowable(e);
                 postAsyncEvent(exceptionEvent);
             } finally {
-                queueMonitor.decrement(request);
                 parseToken.release();
             }
         }

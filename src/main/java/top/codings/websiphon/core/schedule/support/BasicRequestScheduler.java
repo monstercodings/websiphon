@@ -3,9 +3,7 @@ package top.codings.websiphon.core.schedule.support;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.WebRequest;
-import top.codings.websiphon.core.pipeline.ReadWritePipeline;
 import top.codings.websiphon.core.schedule.RequestScheduler;
-import top.codings.websiphon.operation.QueueMonitor;
 import top.codings.websiphon.util.HttpOperator;
 
 import java.util.Map;
@@ -22,15 +20,13 @@ public class BasicRequestScheduler implements RequestScheduler {
     private Map<String, HostAndTask> hostAndTasks = new ConcurrentHashMap<>();
     private LinkedTransferQueue<WebRequest> tasks = new LinkedTransferQueue<>();
     private ExecutorService executorService = Executors.newCachedThreadPool();
-    private QueueMonitor queueMonitor;
 
     public BasicRequestScheduler(int maxRequestCount) {
         this.maxRequestCount = maxRequestCount;
     }
 
     @Override
-    public void init(QueueMonitor queueMonitor) {
-        this.queueMonitor = queueMonitor;
+    public void init() {
         executorService.submit(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
@@ -56,7 +52,6 @@ public class BasicRequestScheduler implements RequestScheduler {
             }
         }
         hostAndTask.queue.offer(request);
-        queueMonitor.increment(request);
         empty = false;
     }
 

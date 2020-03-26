@@ -1,10 +1,9 @@
 package top.codings.websiphon.core.schedule;
 
 import top.codings.websiphon.bean.WebRequest;
-import top.codings.websiphon.operation.QueueMonitor;
 
 public interface RequestScheduler {
-    void init(QueueMonitor queueMonitor);
+    void init();
 
     void handle(WebRequest request);
 

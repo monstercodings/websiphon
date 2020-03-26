@@ -67,11 +67,6 @@ public class LagouSpider {
                         log.error("请求网络异常", event.getThrowable());
                     }
                 })
-                .queueMonitor((ctx, requestHolder, force) -> {
-                    log.debug("采集完成");
-                    System.exit(0);
-//                    urlFilterPlugin.clear();
-                })
 //                .enableProxy(manager)
                 // 设置网络请求最大并发数
                 .setNetworkThread(1)

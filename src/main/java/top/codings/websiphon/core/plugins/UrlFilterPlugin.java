@@ -54,7 +54,6 @@ public class UrlFilterPlugin<T extends WebRequest> implements WebPlugin {
         T request = (T) params[0];
         boolean setin = true;
         if (RequestScheduler.class.isAssignableFrom(targetClass)) {
-            log.debug("过滤插件");
             if (bloomFilter == null) {
                 setin = true;
             } else {
@@ -78,6 +77,9 @@ public class UrlFilterPlugin<T extends WebRequest> implements WebPlugin {
                 if (null != filter) {
                     setin = filter.put(request);
                 }
+            }
+            if (!setin) {
+                request.stop();
             }
         }
         if (!setin) {
@@ -103,7 +105,9 @@ public class UrlFilterPlugin<T extends WebRequest> implements WebPlugin {
 
     @Override
     public Class[] getTargetInterface() {
-        return new Class[]{RequestScheduler.class, WebRequester.class};
+        return new Class[]{
+                RequestScheduler.class,
+                WebRequester.class};
     }
 
     @Override
