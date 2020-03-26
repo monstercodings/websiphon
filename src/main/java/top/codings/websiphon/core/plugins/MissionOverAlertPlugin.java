@@ -5,14 +5,17 @@ import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.MethodDesc;
 import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
-import top.codings.websiphon.core.context.CrawlerContext;
-import top.codings.websiphon.core.context.event.WebAsyncEvent;
 import top.codings.websiphon.core.parser.WebParser;
 import top.codings.websiphon.core.schedule.RequestScheduler;
 import top.codings.websiphon.exception.WebException;
 
 import java.util.Set;
 
+/**
+ * 爬虫无任务时通知插件
+ * 必须在URL过滤插件之前添加
+ * @param <T>
+ */
 @Slf4j
 public class MissionOverAlertPlugin<T> implements WebPlugin {
     private MissionOverHandler handler;

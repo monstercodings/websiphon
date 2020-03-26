@@ -51,7 +51,7 @@ public class NewDemo {
                 .addListener(new WebSyncEventListener<WebBeforeRequestEvent>() {
                     @Override
                     public void listen(WebBeforeRequestEvent event) throws WebException {
-                        log.debug("请求 -> {}", event.getRequest().uri());
+//                        log.debug("请求 -> {}", event.getRequest().uri());
                         /*if (event.getRequest().uri().equals("https://www.ip.cn")) {
                             log.debug("停止请求 -> {}", event.getRequest().uri());
                             event.getRequest().stop();
@@ -84,7 +84,7 @@ public class NewDemo {
 
                     }
                 })
-                /*.addLast(new WebProcessorAdapter() {
+                .addLast(new WebProcessorAdapter() {
                     @Override
                     public void process(WebRequest request) throws WebParseException {
                         Document document = Jsoup.parse(request.response().getHtml());
@@ -95,7 +95,7 @@ public class NewDemo {
                         }
                         log.debug("请求完成 -> {}\n{}", request.uri(), sb.toString());
                     }
-                })*/
+                })
 //                .addLast(new ProxyPlugin(pool))
                 .addLast(new CookiePlugin(
                         CookiePlugin.ReadFromFile.from("cookie.txt"),
@@ -113,8 +113,8 @@ public class NewDemo {
         WebRequestDoc request = new WebRequestDoc();
 //        request.setUri("https://weibo.com/u/5869826499?profile_ftype=1&is_ori=1#_0");
         request.setUri("https://www.ip.cn");
-//        TimeUnit.SECONDS.sleep(1);
-//        crawler.push(request);
+        TimeUnit.SECONDS.sleep(1);
+        crawler.push(request);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> crawler.close()));
         RateResult rateResult = crawler.getContext().getRateResult();
         StringBuilder stringBuilder = new StringBuilder();
