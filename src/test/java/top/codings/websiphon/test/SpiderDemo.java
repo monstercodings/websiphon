@@ -96,7 +96,6 @@ public class SpiderDemo {
         request.setUri("https://www.163.com");
 //        request.setUrl("http://2000019.ip138.com/");
         // 使用扩散插件的情况下，最大的扩散深度
-        request.setMaxDepth(1);
         // 设置超时
         request.setTimeout(60000);
         // 将任务推送给爬虫

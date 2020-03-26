@@ -16,8 +16,6 @@ public class BasicWebRequest implements WebRequest {
     protected Object body;
     protected Map<String, String> headers = new ConcurrentHashMap<>();
     protected int timeout;
-    protected int depth;
-    protected int maxDepth;
     protected WebResponse response = new WebResponse();
     @Getter
     protected WebProxy proxy;

@@ -15,8 +15,7 @@ import top.codings.websiphon.core.context.event.sync.WebBeforeParseEvent;
 import top.codings.websiphon.core.context.event.sync.WebBeforeRequestEvent;
 import top.codings.websiphon.core.pipeline.FilePipeline;
 import top.codings.websiphon.core.plugins.CookiePlugin;
-import top.codings.websiphon.core.plugins.PermitsPerSecondWebPlugin;
-import top.codings.websiphon.core.plugins.ProxyPlugin;
+import top.codings.websiphon.core.plugins.MissionOverAlertPlugin;
 import top.codings.websiphon.core.plugins.UrlFilterPlugin;
 import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.core.proxy.bean.WebProxy;
@@ -37,8 +36,8 @@ public class NewDemo {
                 .add(proxy);
         Crawler crawler = CrawlerBuilder
                 .create()
-//                .setNetworkThread(1)
-                .setPermitForHost(10)
+                .setNetworkThread(1)
+//                .setPermitForHost(10)
 //                .addLast(new SuperWebRequester())
                 .addLast(new FilePipeline("list.txt", "utf-8"))
                 .addListener(new WebSyncEventListener<WebBeforeRequestEvent>() {
@@ -78,20 +77,23 @@ public class NewDemo {
                         log.debug("请求完成 -> {}\n{}", request.uri(), sb.toString());
                     }
                 })
-                .addLast(new ProxyPlugin(pool))
+//                .addLast(new ProxyPlugin(pool))
                 .addLast(new CookiePlugin(
                         CookiePlugin.ReadFromFile.from("cookie.txt"),
                         CookiePlugin.WriteToFile.to("cookie.txt")))
 //                .addLast(new ExtractUrlPlugin(true, false))
+                .addLast(new MissionOverAlertPlugin())
                 .addLast(new UrlFilterPlugin())
-                .addLast(new PermitsPerSecondWebPlugin(3))
+//                .addLast(new PermitsPerSecondWebPlugin(3))
                 .queueMonitor((ctx, requestHolder, force) -> log.debug("完结"))
                 .build();
         crawler.getContext().setId("test");
         crawler.start();
         WebRequestDoc request = new WebRequestDoc();
         request.setUri("https://weibo.com/u/5869826499?profile_ftype=1&is_ori=1#_0");
-//        crawler.push(request);
+        request.setUri("https://www.ip.cn");
+        TimeUnit.SECONDS.sleep(1);
+        crawler.push(request);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> crawler.close()));
         RateResult rateResult = crawler.getContext().getRateResult();
         StringBuilder stringBuilder = new StringBuilder();
