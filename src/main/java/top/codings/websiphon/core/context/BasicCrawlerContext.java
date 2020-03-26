@@ -3,7 +3,6 @@ package top.codings.websiphon.core.context;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import top.codings.websiphon.bean.RateResult;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
 import top.codings.websiphon.core.context.event.WebSyncEvent;
 import top.codings.websiphon.core.support.BasicCrawler;
@@ -35,11 +34,6 @@ public class BasicCrawlerContext implements CrawlerContext {
     @Override
     public boolean postAsyncEvent(WebAsyncEvent event) {
         return webHandler.postAsyncEvent(event);
-    }
-
-    @Override
-    public RateResult getRateResult() {
-        return webHandler.getRateResult();
     }
 
     @Override

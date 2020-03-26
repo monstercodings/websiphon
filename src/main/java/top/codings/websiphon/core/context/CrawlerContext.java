@@ -1,7 +1,5 @@
 package top.codings.websiphon.core.context;
 
-import top.codings.websiphon.bean.RateResult;
-import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.Crawler;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
 import top.codings.websiphon.core.context.event.WebSyncEvent;
@@ -25,8 +23,6 @@ public interface CrawlerContext {
     boolean postAsyncEvent(WebAsyncEvent event);
 
     Crawler getCrawler();
-
-    RateResult getRateResult();
 
     void clearTask();
 

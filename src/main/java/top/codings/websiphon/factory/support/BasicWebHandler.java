@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.PushResult;
-import top.codings.websiphon.bean.RateResult;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
@@ -84,11 +83,6 @@ public class BasicWebHandler implements WebHandler {
      * 解析线程池
      */
     private ExecutorService parseExecutor;
-    /**
-     * 速率统计
-     */
-    @Getter
-    private RateResult rateResult = new RateResult();
 
     @Override
     public void request(CrawlerContext context) throws InterruptedException {
@@ -105,7 +99,6 @@ public class BasicWebHandler implements WebHandler {
             event.setRequest(request);
             postSyncEvent(event);
             webRequester.execute(request);
-            rateResult.addTotal();
             return;
         } catch (StopWebRequestException e) {
             // 停止处理该请求
@@ -159,11 +152,9 @@ public class BasicWebHandler implements WebHandler {
         networkToken.release();
         if (data instanceof WebRequest) {
             scheduler.release((WebRequest) data);
-            rateResult.incrementResult((WebRequest) data);
             handleSuccessd((WebRequest) data);
         } else if (data instanceof WebErrorAsyncEvent) {
             scheduler.release(((WebErrorAsyncEvent) data).getRequest());
-            rateResult.incrementResult(((WebErrorAsyncEvent) data).getRequest());
             handleFailed((WebErrorAsyncEvent) data);
         } else {
             throw new IllegalArgumentException("处理参数只能为WebRequest或WebErrorAsyncEvent的子类");
@@ -173,7 +164,6 @@ public class BasicWebHandler implements WebHandler {
     @Override
     public void init(int networkCount, int parseCount) {
         scheduler.init();
-        rateResult.start();
         networkToken = new Semaphore(networkCount);
         parseToken = new Semaphore(parseCount);
         parseExecutor = new CrawlThreadPoolExecutor(parseCount, "crawler-parse");
@@ -257,7 +247,6 @@ public class BasicWebHandler implements WebHandler {
 
     @Override
     public void close() throws Exception {
-        rateResult.close();
         if (null != readWritePipelines) {
             readWritePipelines.forEach(readWritePipeline -> {
                 try {

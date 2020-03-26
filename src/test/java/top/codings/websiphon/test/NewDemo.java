@@ -8,7 +8,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.junit.jupiter.api.Test;
 import top.codings.websiphon.bean.BasicWebRequest;
-import top.codings.websiphon.bean.RateResult;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebRequestDoc;
 import top.codings.websiphon.core.Crawler;
@@ -123,12 +122,5 @@ public class NewDemo {
         websiphonStatsPlugin2.clear();
         crawler.push(request);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> crawler.close()));
-        RateResult rateResult = crawler.getContext().getRateResult();
-        StringBuilder stringBuilder = new StringBuilder();
-        while (true) {
-            TimeUnit.SECONDS.sleep(1);
-//            log.debug("QPS {}/s", rateResult.getEverySecondMessage());
-            stringBuilder.delete(0, stringBuilder.length());
-        }
     }
 }

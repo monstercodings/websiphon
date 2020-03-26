@@ -3,7 +3,6 @@ package top.codings.websiphon.test;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import top.codings.websiphon.bean.BasicWebRequest;
-import top.codings.websiphon.bean.RateResult;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebResponse;
 import top.codings.websiphon.core.Crawler;
@@ -84,17 +83,6 @@ public class SpiderDemo {
         // 将任务推送给爬虫
         crawler.push(request);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> crawler.close()));
-        RateResult rateResult = crawler.getContext().getRateResult();
-        StringBuilder stringBuilder = new StringBuilder();
-        while (true) {
-            TimeUnit.SECONDS.sleep(1);
-            stringBuilder.append("\n");
-            for (Map.Entry<WebResponse.Result, AtomicLong> entry : rateResult.getResultStat().entrySet()) {
-                stringBuilder.append(entry.getKey().getKey()).append(":").append(entry.getValue().get()).append("\n");
-            }
-            log.debug("\n{}", stringBuilder.toString());
-            stringBuilder.delete(0, stringBuilder.length());
-        }
 //        Thread.currentThread().join();
     }
 }
