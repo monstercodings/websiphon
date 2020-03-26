@@ -1,8 +1,9 @@
-package top.codings.websiphon.core.plugins;
+package top.codings.websiphon.core.plugins.support;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import top.codings.websiphon.bean.*;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.exception.WebException;
 

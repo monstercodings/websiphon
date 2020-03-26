@@ -6,6 +6,7 @@ import top.codings.websiphon.bean.WebRequest;
 
 @Getter
 @Setter
+@Deprecated
 public class WebMonitorExceptionEvent<T extends WebRequest> extends WebExceptionEvent<T> {
     protected int size;
 

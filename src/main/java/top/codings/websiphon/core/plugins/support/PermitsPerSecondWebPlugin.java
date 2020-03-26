@@ -1,20 +1,22 @@
-package top.codings.websiphon.core.plugins;
+package top.codings.websiphon.core.plugins.support;
 
 import com.google.common.util.concurrent.RateLimiter;
 import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.MethodDesc;
 import top.codings.websiphon.bean.ReturnPoint;
+import top.codings.websiphon.bean.WebRequest;
+import top.codings.websiphon.core.plugins.WebPlugin;
+import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.exception.WebException;
-import top.codings.websiphon.factory.bean.WebHandler;
 
 /**
  * 令牌桶插件
  */
 @Slf4j
-public class RateLimiterPlugin implements WebPlugin {
+public class PermitsPerSecondWebPlugin implements WebPlugin {
     private RateLimiter rateLimiter;
 
-    public RateLimiterPlugin(double permitsPerSecond) {
+    public PermitsPerSecondWebPlugin(double permitsPerSecond) {
         rateLimiter = RateLimiter.create(permitsPerSecond);
     }
 
@@ -31,15 +33,13 @@ public class RateLimiterPlugin implements WebPlugin {
 
     @Override
     public Class[] getTargetInterface() {
-        return new Class[]{
-                WebHandler.class
-        };
+        return new Class[]{WebRequester.class};
     }
 
     @Override
     public MethodDesc[] getMethods() {
         return new MethodDesc[]{
-                new MethodDesc("request", new Class[0])
+                new MethodDesc("execute", new Class[]{WebRequest.class})
         };
     }
 }

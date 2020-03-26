@@ -1,4 +1,4 @@
-package top.codings.websiphon.core.plugins;
+package top.codings.websiphon.core.plugins.support;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -6,6 +6,7 @@ import top.codings.websiphon.bean.MethodDesc;
 import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebResponse;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.requester.WebRequester;
 
 import java.util.Map;

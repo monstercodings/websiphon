@@ -42,6 +42,7 @@ public class BasicCrawler implements Crawler {
             // 初始化请求器
             context.getWebHandler().getWebRequester().init();
             WebCrawlStartEvent event = new WebCrawlStartEvent();
+            event.setContext(context);
             context.postSyncEvent(event);
         } catch (Exception e) {
             context.setRunning(false);
@@ -118,7 +119,9 @@ public class BasicCrawler implements Crawler {
         }
         context.setEndAt(System.currentTimeMillis());
         try {
-            context.postSyncEvent(new WebCrawlShutdownEvent());
+            WebCrawlShutdownEvent event = new WebCrawlShutdownEvent();
+            event.setContext(context);
+            context.postSyncEvent(event);
         } catch (Exception e) {
             WebExceptionEvent event = new WebExceptionEvent();
             event.setThrowable(e);

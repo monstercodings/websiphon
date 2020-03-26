@@ -1,4 +1,4 @@
-package top.codings.websiphon.core.plugins;
+package top.codings.websiphon.core.plugins.support;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -15,6 +15,7 @@ import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebResponse;
 import top.codings.websiphon.core.context.CrawlerContext;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.util.HttpOperator;

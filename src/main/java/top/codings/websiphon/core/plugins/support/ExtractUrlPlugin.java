@@ -1,4 +1,4 @@
-package top.codings.websiphon.core.plugins;
+package top.codings.websiphon.core.plugins.support;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -9,6 +9,7 @@ import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.async.WebExceptionEvent;
 import top.codings.websiphon.core.context.event.sync.WebLinkEvent;
 import top.codings.websiphon.core.parser.WebParser;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.util.HttpOperator;
 
@@ -19,6 +20,10 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 扩散链接插件
+ * 必须添加在任务列表监控插件之前
+ */
 @Slf4j
 public class ExtractUrlPlugin implements WebPlugin {
     private String rawfilterRegex = "(\\w+)://([^/:]+)(:\\d*)?([^# ]*)";

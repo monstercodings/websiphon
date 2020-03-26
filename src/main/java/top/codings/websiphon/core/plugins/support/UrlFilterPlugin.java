@@ -1,4 +1,4 @@
-package top.codings.websiphon.core.plugins;
+package top.codings.websiphon.core.plugins.support;
 
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.MethodDesc;
 import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.schedule.RequestScheduler;
 import top.codings.websiphon.exception.WebException;
