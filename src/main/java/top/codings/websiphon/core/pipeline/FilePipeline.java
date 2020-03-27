@@ -48,6 +48,9 @@ public class FilePipeline extends ReadWritePipelineAdapter<BasicWebRequest, Stri
 
     @Override
     public void conversion(String param, List<BasicWebRequest> out) {
+        if (param.startsWith("#")) {
+            return;
+        }
         BasicWebRequest request = new BasicWebRequest();
         request.setUri(param);
         out.add(request);
