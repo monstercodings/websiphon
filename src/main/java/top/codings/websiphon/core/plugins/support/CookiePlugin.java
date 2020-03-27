@@ -159,9 +159,6 @@ public class CookiePlugin implements WebPlugin {
     public static class WriteToFile {
         public static Consumer<Map<String, Map<String, Cookie>>> to(String filePath) {
             File file = new File(filePath);
-            if (!file.exists()) {
-                return null;
-            }
             return hostCookies -> {
                 try {
                     JSONObject json = new JSONObject();

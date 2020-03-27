@@ -15,6 +15,8 @@ public class BasicWebRequest implements WebRequest {
     protected Method method = Method.GET;
     protected Object body;
     protected Map<String, String> headers = new ConcurrentHashMap<>();
+    @Getter
+    protected Map<String, String> formData = new ConcurrentHashMap<>();
     protected int timeout;
     protected WebResponse response = new WebResponse();
     @Getter

@@ -11,6 +11,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +82,7 @@ public class SuperWebRequester implements WebRequester {
                                         boolean proxyResp = (boolean) channelHandlerContext.channel().attr(AttributeKey.valueOf("proxy")).get();
                                         if (proxyResp) {
                                             initSsl(channelHandlerContext.channel(), httpProtocol);
-                                            FullHttpRequest request = initFullHttpRequest(webRequest, httpProtocol);
+                                            HttpRequest request = initHttpRequest(webRequest, httpProtocol);
                                             channelHandlerContext.channel().attr(AttributeKey.valueOf("proxy")).set(false);
                                             channelHandlerContext.writeAndFlush(request).addListener((ChannelFutureListener) channelFuture -> {
                                                 if (channelFuture.isSuccess()) {
@@ -98,7 +99,6 @@ public class SuperWebRequester implements WebRequester {
                                         ContentType contentType = null;
                                         String contentTypeStr = null;
                                         String charset = null;
-//                                        StringBuilder sb = new StringBuilder();
                                         for (Map.Entry<String, String> header : fullHttpResponse.headers()) {
                                             if (header.getKey().equalsIgnoreCase("Set-Cookie")) {
                                                 Cookie cookie = ClientCookieDecoder.LAX.decode(header.getValue());
@@ -114,7 +114,6 @@ public class SuperWebRequester implements WebRequester {
                                                     charset = ((BasicWebRequest) webRequest).getCharset();
                                                 }
                                             }
-//                                            sb.append(header.getKey()).append(":").append(header.getValue()).append("\n");
                                         }
                                         response.setHeaders(headers);
                                         if (StringUtils.isBlank(charset)) {
@@ -167,13 +166,13 @@ public class SuperWebRequester implements WebRequester {
                 return;
             }
             channelFuture.channel().attr(AttributeKey.valueOf("proxy")).set(finalProxy);
-            FullHttpRequest request;
+            HttpRequest request;
             if (finalProxy) {
                 request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, httpProtocol.getHost() + ":" + httpProtocol.getPort());
                 request.headers().set("Host", httpProtocol.getHost() + ":" + httpProtocol.getPort());
             } else {
                 initSsl(channelFuture.channel(), httpProtocol);
-                request = initFullHttpRequest(webRequest, httpProtocol);
+                request = initHttpRequest(webRequest, httpProtocol);
             }
             channelFuture.channel().writeAndFlush(request).addListener((ChannelFutureListener) channelFuture1 -> {
                 if (channelFuture1.isSuccess()) {
@@ -202,7 +201,7 @@ public class SuperWebRequester implements WebRequester {
         workerGroup.shutdownGracefully();
     }
 
-    private FullHttpRequest initFullHttpRequest(WebRequest webRequest, HttpOperator.HttpProtocol httpProtocol) throws UnsupportedEncodingException {
+    private HttpRequest initHttpRequest(WebRequest webRequest, HttpOperator.HttpProtocol httpProtocol) throws UnsupportedEncodingException {
         HttpMethod httpMethod = null;
         WebRequest.Method method = webRequest.method();
         switch (method) {
@@ -221,7 +220,21 @@ public class SuperWebRequester implements WebRequester {
                 body = webRequest.body().toString().getBytes("ISO-8859-1");
             }
         }
-        FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, httpMethod, httpProtocol.getPath(), Unpooled.wrappedBuffer(body));
+        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, httpMethod, httpProtocol.getPath());
+        if (httpMethod == HttpMethod.POST) {
+            try {
+                HttpPostRequestEncoder encoder = new HttpPostRequestEncoder(request, false);
+                if (webRequest instanceof BasicWebRequest) {
+                    BasicWebRequest basicWebRequest = (BasicWebRequest) webRequest;
+                    for (Map.Entry<String, String> entry : basicWebRequest.getFormData().entrySet()) {
+                        encoder.addBodyAttribute(entry.getKey(), entry.getValue());
+                    }
+                }
+                request = encoder.finalizeRequest();
+            } catch (HttpPostRequestEncoder.ErrorDataEncoderException e) {
+                e.printStackTrace();
+            }
+        }
         request
                 .headers()
                 .set("Host", httpProtocol.getHost() + ":" + httpProtocol.getPort())
