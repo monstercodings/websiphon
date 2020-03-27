@@ -115,11 +115,6 @@ public class NewDemo {
                 .build();
         crawler.getContext().setId("test");
         crawler.start();
-        WebRequestDoc request = new WebRequestDoc();
-//        request.setUri("https://weibo.com/u/5869826499?profile_ftype=1&is_ori=1#_0");
-//        request.setUri("https://www.ipp.cn");
-//        TimeUnit.SECONDS.sleep(5);
-//        crawler.push(request);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> crawler.close()));
         Thread.currentThread().join();
     }
