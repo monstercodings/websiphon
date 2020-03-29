@@ -74,7 +74,7 @@ public class LagouSpider {
                 .setParseThread(1)
                 .build();
         // 设置爬虫的名字(必须)
-        crawler.getContext().setId("测试爬虫");
+        crawler.getContext().setId("拉勾爬虫");
         // 启动爬虫(异步)
         crawler.start();
         // 构建爬取任务
