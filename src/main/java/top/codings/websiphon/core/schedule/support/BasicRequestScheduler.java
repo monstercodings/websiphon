@@ -32,7 +32,10 @@ public class BasicRequestScheduler implements RequestScheduler {
                 try {
                     schedule();
                 } catch (InterruptedException e) {
+                    log.error("爬虫调度器被中断 -> {}", e.getLocalizedMessage());
                     return;
+                } catch (Exception e) {
+                    log.error("爬虫调度器出现异常", e);
                 }
             }
         });
