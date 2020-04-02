@@ -3,7 +3,6 @@ package top.codings.websiphon.core.requester;
 import com.alibaba.fastjson.JSON;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufUtil;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -13,6 +12,8 @@ import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +67,13 @@ public class SuperWebRequester implements WebRequester {
                     protected void initChannel(SocketChannel channel) throws Exception {
                         channel
                                 .pipeline()
+                                .addLast(new IdleStateHandler(30, 30, 30) {
+                                    @Override
+                                    protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
+                                        ctx.close();
+                                        webRequest.failed(new WebNetworkException("连接超时"));
+                                    }
+                                })
                                 .addLast(new HttpClientCodec())
                                 .addLast(new HttpResponseDecoder())
                                 .addLast(new HttpContentDecompressor())
