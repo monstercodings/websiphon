@@ -164,32 +164,37 @@ public class SuperWebRequester implements WebRequester {
         boolean finalProxy = proxy;
         WebProxy finalWebProxy = webProxy;
         future.addListener((ChannelFutureListener) channelFuture -> {
-            if (!channelFuture.isSuccess()) {
-                if (finalProxy) {
-                    finalWebProxy.setHealthy(false);
-                }
-                // TODO 失败处理
-                channelFuture.channel().close();
-                webRequest.failed(channelFuture.cause());
-                return;
-            }
-            channelFuture.channel().attr(AttributeKey.valueOf("proxy")).set(finalProxy);
-            HttpRequest request;
-            if (finalProxy) {
-                request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, httpProtocol.getHost() + ":" + httpProtocol.getPort());
-                request.headers().set("Host", httpProtocol.getHost() + ":" + httpProtocol.getPort());
-            } else {
-                initSsl(channelFuture.channel(), httpProtocol);
-                request = initHttpRequest(webRequest, httpProtocol);
-            }
-            channelFuture.channel().writeAndFlush(request).addListener((ChannelFutureListener) channelFuture1 -> {
-                if (channelFuture1.isSuccess()) {
+            try {
+                if (!channelFuture.isSuccess()) {
+                    if (finalProxy) {
+                        finalWebProxy.setHealthy(false);
+                    }
+                    // TODO 失败处理
+                    channelFuture.channel().close();
+                    webRequest.failed(channelFuture.cause());
                     return;
                 }
-                // TODO 失败处理
-                channelFuture1.channel().close();
-                webRequest.failed(channelFuture1.cause());
-            });
+                channelFuture.channel().attr(AttributeKey.valueOf("proxy")).set(finalProxy);
+                HttpRequest request;
+                if (finalProxy) {
+                    request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, httpProtocol.getHost() + ":" + httpProtocol.getPort());
+                    request.headers().set("Host", httpProtocol.getHost() + ":" + httpProtocol.getPort());
+                } else {
+                    initSsl(channelFuture.channel(), httpProtocol);
+                    request = initHttpRequest(webRequest, httpProtocol);
+                }
+                channelFuture.channel().writeAndFlush(request).addListener((ChannelFutureListener) channelFuture1 -> {
+                    if (channelFuture1.isSuccess()) {
+                        return;
+                    }
+                    // TODO 失败处理
+                    channelFuture1.channel().close();
+                    webRequest.failed(channelFuture1.cause());
+                });
+            } catch (Exception e) {
+                channelFuture.channel().close();
+                webRequest.failed(e);
+            }
         })
         ;
     }
