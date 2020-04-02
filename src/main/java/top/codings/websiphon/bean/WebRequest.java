@@ -30,6 +30,15 @@ public interface WebRequest {
      */
     void failed(Throwable throwable);
 
+    /**
+     * 获取当前请求对象的状态
+     *
+     * @return
+     */
+    Status status();
+
+    void status(Status status);
+
     default void stop() {
         throw new StopWebRequestException();
     }
@@ -44,4 +53,11 @@ public interface WebRequest {
         CONNECT()
     }
 
+    enum Status {
+        WAIT(),
+        DOING(),
+        ERROR(),
+        STOP(),
+        SUCCEED();
+    }
 }

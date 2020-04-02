@@ -26,6 +26,7 @@ public class BasicWebRequest implements WebRequest {
     protected long endAt;
     @Getter
     protected String charset;
+    protected Status status = Status.WAIT;
 
     @Override
     public String uri() {
@@ -64,14 +65,26 @@ public class BasicWebRequest implements WebRequest {
 
     @Override
     public void succeed() {
+        status = Status.SUCCEED;
         context.doOnFinished(this);
     }
 
     @Override
     public void failed(Throwable throwable) {
+        status = Status.ERROR;
         WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
         event.setThrowable(throwable);
         event.setRequest(this);
         context.doOnFinished(event);
+    }
+
+    @Override
+    public Status status() {
+        return status;
+    }
+
+    @Override
+    public void status(Status status) {
+        this.status = status;
     }
 }

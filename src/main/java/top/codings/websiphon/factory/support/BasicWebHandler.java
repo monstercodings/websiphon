@@ -89,6 +89,7 @@ public class BasicWebHandler implements WebHandler {
         networkToken.acquire();
         WebRequest request = scheduler.take();
         request.context(context);
+        request.status(WebRequest.Status.DOING);
         try {
             if (request instanceof BasicWebRequest) {
                 BasicWebRequest basicWebRequest = (BasicWebRequest) request;
@@ -101,6 +102,7 @@ public class BasicWebHandler implements WebHandler {
             webRequester.execute(request);
             return;
         } catch (StopWebRequestException e) {
+            request.status(WebRequest.Status.STOP);
             // 停止处理该请求
         } catch (WebNetworkException e) {
             WebNetworkExceptionEvent exceptionEvent = new WebNetworkExceptionEvent();
@@ -118,6 +120,7 @@ public class BasicWebHandler implements WebHandler {
             event.setThrowable(e);
             postAsyncEvent(event);
         }
+        request.status(WebRequest.Status.ERROR);
         scheduler.release(request);
         networkToken.release();
     }
@@ -281,11 +284,14 @@ public class BasicWebHandler implements WebHandler {
                 if (request instanceof BasicWebRequest) {
                     ((BasicWebRequest) request).setEndAt(System.currentTimeMillis());
                 }
+                request.status(WebRequest.Status.SUCCEED);
 //                rateResult.addSuccess(request.getEndAt() - request.getBeginAt());
                 WebAfterParseEvent afterParseEvent = new WebAfterParseEvent();
                 afterParseEvent.setRequest(request);
                 postSyncEvent(afterParseEvent);
+                return;
             } catch (StopWebRequestException e) {
+                request.status(WebRequest.Status.STOP);
                 // 停止异常不做处理
             } catch (WebException e) {
                 WebParseExceptionEvent exceptionEvent = new WebParseExceptionEvent();
@@ -300,6 +306,7 @@ public class BasicWebHandler implements WebHandler {
             } finally {
                 parseToken.release();
             }
+            request.status(WebRequest.Status.ERROR);
         }
     }
 }
