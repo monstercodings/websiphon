@@ -1,6 +1,7 @@
 package top.codings.websiphon.core.plugins.support;
 
 import com.google.common.collect.Sets;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.MethodDesc;
 import top.codings.websiphon.bean.ReturnPoint;
@@ -20,6 +21,7 @@ import java.util.Set;
 @Slf4j
 public class MissionOverAlertPlugin<T> implements WebPlugin {
     private MissionOverHandler handler;
+    @Getter
     private Set<WebRequest> requestHolder = Sets.newConcurrentHashSet();
 
     public MissionOverAlertPlugin(MissionOverHandler<T> handler) {
