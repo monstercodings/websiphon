@@ -2,6 +2,7 @@ package top.codings.websiphon.bean;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
 import top.codings.websiphon.core.proxy.bean.WebProxy;
@@ -9,6 +10,7 @@ import top.codings.websiphon.core.proxy.bean.WebProxy;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@ToString
 @Setter
 public class BasicWebRequest implements WebRequest {
     protected String uri;
@@ -22,7 +24,9 @@ public class BasicWebRequest implements WebRequest {
     @Getter
     protected WebProxy proxy;
     protected CrawlerContext context;
+    @Getter
     protected long beginAt;
+    @Getter
     protected long endAt;
     @Getter
     protected String charset;
