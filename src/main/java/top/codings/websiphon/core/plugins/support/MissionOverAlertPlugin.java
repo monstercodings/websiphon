@@ -101,8 +101,8 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
         }
         exe = Executors.newSingleThreadExecutor();
         exe.submit(() -> {
-            try {
-                while (!Thread.currentThread().isInterrupted()) {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
                     Iterator<T> iterator = requestHolder.iterator();
                     while (iterator.hasNext()) {
                         T webRequest = iterator.next();
@@ -113,9 +113,11 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
                         }
                     }
                     TimeUnit.MINUTES.sleep(5);
+                } catch (InterruptedException e) {
+                    return;
+                } catch (Exception e) {
+                    log.error("监督队列情况出现异常", e);
                 }
-            } catch (InterruptedException e) {
-                return;
             }
         });
     }
