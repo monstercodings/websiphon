@@ -111,7 +111,7 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
                     while (iterator.hasNext()) {
                         T webRequest = iterator.next();
                         if ((System.currentTimeMillis() - ((BasicWebRequest) webRequest).getBeginAt()) > expired) {
-                            log.warn("[{}]请求对象超时未完成 -> {}", webRequest.status(), webRequest);
+//                            log.warn("[{}]请求对象超时未完成 -> {}", webRequest.status(), webRequest);
                             Integer count = result.get(webRequest.status().name());
                             if (null == count) {
                                 result.put(webRequest.status().name(), 1);
