@@ -1,5 +1,6 @@
 package top.codings.websiphon.core.plugins.support;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Sets;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,9 @@ import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.schedule.RequestScheduler;
 import top.codings.websiphon.exception.WebException;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -101,6 +104,7 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
         }
         exe = Executors.newSingleThreadExecutor();
         exe.submit(() -> {
+            Map<String, Integer> result = new HashMap<>();
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     Iterator<T> iterator = requestHolder.iterator();
@@ -108,10 +112,18 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
                         T webRequest = iterator.next();
                         if ((System.currentTimeMillis() - ((BasicWebRequest) webRequest).getBeginAt()) > expired) {
                             log.warn("[{}]请求对象超时未完成 -> {}", webRequest.status(), webRequest);
-                            iterator.remove();
-                            checkLast(webRequest);
+                            Integer count = result.get(webRequest.status().name());
+                            if (null == count) {
+                                result.put(webRequest.status().name(), 1);
+                            } else {
+                                result.put(webRequest.status().name(), count + 1);
+                            }
+//                            iterator.remove();
+//                            checkLast(webRequest);
                         }
                     }
+                    log.info("监控结果\n{}", JSON.toJSONString(result, true));
+                    result.clear();
                     TimeUnit.MINUTES.sleep(5);
                 } catch (InterruptedException e) {
                     return;
