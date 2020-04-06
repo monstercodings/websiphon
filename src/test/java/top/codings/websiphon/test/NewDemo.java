@@ -34,7 +34,7 @@ public class NewDemo {
         AtomicBoolean stop = new AtomicBoolean(false);
         QpsPlugin qpsPlugin = new QpsPlugin(qpsStats -> {
             if (!stop.get()) {
-                log.debug("\n总QPS -> {}/s\n{}", qpsStats.getQps(), JSON.toJSONString(qpsStats.getHostQpsMap(), true));
+//                log.debug("\n总QPS -> {}/s\n{}", qpsStats.getQps(), JSON.toJSONString(qpsStats.getHostQpsMap(), true));
             }
         });
         WebsiphonStatsPlugin statsPlugin = new WebsiphonStatsPlugin();
@@ -99,8 +99,8 @@ public class NewDemo {
                 })
 //                .addLast(new ProxyPlugin(pool))
                 .addLast(new CookiePlugin(
-                        CookiePlugin.ReadFromFile.from("cookie.txt"),
-                        CookiePlugin.WriteToFile.to("cookie.txt")))
+                        CookiePlugin.ReadFromFile.from("config/cookie.txt"),
+                        CookiePlugin.WriteToFile.to("config/cookie.txt")))
                 .addLast(new ExtractUrlPlugin(true, false))
                 .addLast(new MissionOverAlertPlugin((MissionOverAlertPlugin.MissionOverHandler<WebRequest>) request -> {
                     stop.set(true);

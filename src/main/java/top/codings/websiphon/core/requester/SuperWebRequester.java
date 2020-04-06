@@ -70,8 +70,8 @@ public class SuperWebRequester implements WebRequester {
                                 .addLast(new IdleStateHandler(30, 30, 30) {
                                     @Override
                                     protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
-                                        ctx.close();
                                         webRequest.failed(new WebNetworkException("连接超时"));
+                                        ctx.close();
                                     }
                                 })
                                 .addLast(new HttpClientCodec())
@@ -83,8 +83,8 @@ public class SuperWebRequester implements WebRequester {
                                     protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpResponse fullHttpResponse) throws Exception {
                                         if (fullHttpResponse.decoderResult().isFailure()) {
                                             // TODO 失败处理
-                                            channelHandlerContext.close();
                                             webRequest.failed(fullHttpResponse.decoderResult().cause());
+                                            channelHandlerContext.close();
                                             return;
                                         }
                                         boolean proxyResp = (boolean) channelHandlerContext.channel().attr(AttributeKey.valueOf("proxy")).get();
@@ -97,8 +97,8 @@ public class SuperWebRequester implements WebRequester {
                                                     return;
                                                 }
                                                 // TODO 失败处理
-                                                channelFuture.channel().close();
                                                 webRequest.failed(channelFuture.cause());
+                                                channelFuture.channel().close();
                                             });
                                             return;
                                         }
@@ -141,15 +141,15 @@ public class SuperWebRequester implements WebRequester {
                                         response.setContentType(contentTypeStr);
                                         response.setBytes(bytes);
                                         response.setUrl(webRequest.uri());
-                                        channelHandlerContext.close();
                                         webRequest.succeed();
+                                        channelHandlerContext.close();
                                     }
 
                                     @Override
                                     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
                                         // TODO 失败处理
-                                        ctx.close();
                                         webRequest.failed(cause);
+                                        ctx.close();
                                     }
                                 })
                         ;
@@ -161,6 +161,11 @@ public class SuperWebRequester implements WebRequester {
         } else {
             future = bootstrap.connect(httpProtocol.getHost(), httpProtocol.getPort());
         }
+        future.channel().closeFuture().addListener((ChannelFutureListener) channelFuture -> {
+            if (webRequest.status() == WebRequest.Status.DOING) {
+                webRequest.failed(new WebNetworkException("网络异常"));
+            }
+        });
         boolean finalProxy = proxy;
         WebProxy finalWebProxy = webProxy;
         future.addListener((ChannelFutureListener) channelFuture -> {
@@ -170,8 +175,8 @@ public class SuperWebRequester implements WebRequester {
                         finalWebProxy.setHealthy(false);
                     }
                     // TODO 失败处理
-                    channelFuture.channel().close();
                     webRequest.failed(channelFuture.cause());
+                    channelFuture.channel().close();
                     return;
                 }
                 channelFuture.channel().attr(AttributeKey.valueOf("proxy")).set(finalProxy);
@@ -188,12 +193,12 @@ public class SuperWebRequester implements WebRequester {
                         return;
                     }
                     // TODO 失败处理
-                    channelFuture1.channel().close();
                     webRequest.failed(channelFuture1.cause());
+                    channelFuture1.channel().close();
                 });
             } catch (Exception e) {
-                channelFuture.channel().close();
                 webRequest.failed(e);
+                channelFuture.channel().close();
             }
         })
         ;

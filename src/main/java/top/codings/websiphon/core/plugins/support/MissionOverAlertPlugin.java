@@ -122,9 +122,9 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
 //                            checkLast(webRequest);
                         }
                     }
-                    log.info("监控结果\n{}", JSON.toJSONString(result, true));
+                    log.debug("监控结果\n{}", JSON.toJSONString(result, true));
                     result.clear();
-                    TimeUnit.MINUTES.sleep(5);
+                    TimeUnit.HOURS.sleep(1);
                 } catch (InterruptedException e) {
                     return;
                 } catch (Exception e) {
