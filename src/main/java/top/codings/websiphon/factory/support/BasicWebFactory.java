@@ -14,7 +14,7 @@ import top.codings.websiphon.core.pipeline.ReadWritePipeline;
 import top.codings.websiphon.core.plugins.PluginFactory;
 import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.processor.WebProcessor;
-import top.codings.websiphon.core.requester.SuperWebRequester;
+import top.codings.websiphon.core.requester.BasicWebRequester;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.schedule.RequestScheduler;
 import top.codings.websiphon.core.schedule.support.BasicRequestScheduler;
@@ -93,7 +93,7 @@ public class BasicWebFactory implements WebFactory {
     @Override
     public Crawler build() {
         if (requester == null) {
-            requester = new SuperWebRequester();
+            requester = new BasicWebRequester();
         }
         if (webParser == null) {
             webParser = new BasicWebParser();

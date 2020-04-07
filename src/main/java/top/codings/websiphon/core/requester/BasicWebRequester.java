@@ -35,8 +35,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 内置基础请求器
+ */
 @Slf4j
-public class SuperWebRequester implements WebRequester {
+public class BasicWebRequester implements WebRequester {
     private EventLoopGroup workerGroup;
 
     @Override

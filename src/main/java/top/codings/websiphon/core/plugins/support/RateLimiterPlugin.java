@@ -12,6 +12,7 @@ import top.codings.websiphon.factory.bean.WebHandler;
 
 /**
  * 令牌桶插件
+ * 与URL过滤插件一起使用时，需要放在UrlFilterPlugin的前面
  */
 @Slf4j
 public class RateLimiterPlugin implements WebPlugin {

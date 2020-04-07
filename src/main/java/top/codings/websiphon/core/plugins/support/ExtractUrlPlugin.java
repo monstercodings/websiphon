@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 /**
  * 扩散链接插件
- * 必须添加在任务列表监控插件之前
+ * 必须添加在任务列表监控插件 MissionOverAlertPlugin 之前
  */
 @Slf4j
 public class ExtractUrlPlugin implements WebPlugin {

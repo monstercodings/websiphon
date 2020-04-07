@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 爬虫无任务时通知插件
- * 必须在URL过滤插件之前添加
+ * 必须在URL过滤插件 UrlFilterPlugin 之前添加
  *
  * @param <T>
  */

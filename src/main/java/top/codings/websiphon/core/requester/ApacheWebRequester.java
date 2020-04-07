@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @NoArgsConstructor
 @Slf4j
-public class BasicAsyncWebRequester implements WebRequester<BasicWebRequest> {
+public class ApacheWebRequester implements WebRequester<BasicWebRequest> {
     @Getter
     private boolean health = false;
 
@@ -73,7 +73,7 @@ public class BasicAsyncWebRequester implements WebRequester<BasicWebRequest> {
     //    private RequestConfig requestConfig;
     private AtomicInteger size = new AtomicInteger(0);
 
-    public BasicAsyncWebRequester(boolean redirect) {
+    public ApacheWebRequester(boolean redirect) {
         this.redirect = redirect;
     }
 
