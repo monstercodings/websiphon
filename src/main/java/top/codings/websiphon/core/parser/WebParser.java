@@ -14,8 +14,6 @@ import java.util.List;
 public interface WebParser<IN extends WebRequest> extends WebType {
     /**
      * 获取解析结果
-     *
-     * @return
      */
     void parse(IN param) throws WebParseException;
 
