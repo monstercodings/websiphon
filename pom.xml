@@ -264,6 +264,7 @@
                                 <!-- java8版本导致javadoc打包编译失败时候，添加-->
                                 <configuration>
                                     <additionalparam>-Xdoclint:none</additionalparam>
+                                    <failOnError>false</failOnError>
                                 </configuration>
                             </execution>
                         </executions>
