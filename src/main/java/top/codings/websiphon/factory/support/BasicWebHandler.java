@@ -89,13 +89,7 @@ public class BasicWebHandler implements WebHandler {
         networkToken.acquire();
         WebRequest request = scheduler.take();
         request.context(context);
-        request.status(WebRequest.Status.DOING);
         try {
-            if (request instanceof BasicWebRequest) {
-                BasicWebRequest basicWebRequest = (BasicWebRequest) request;
-//                basicWebRequest.setProxy(Optional.ofNullable(basicWebRequest.getProxy()).orElse(proxyPool.select()));
-                basicWebRequest.setBeginAt(System.currentTimeMillis());
-            }
             WebBeforeRequestEvent event = new WebBeforeRequestEvent();
             event.setRequest(request);
             postSyncEvent(event);
@@ -146,7 +140,6 @@ public class BasicWebHandler implements WebHandler {
     }
 
     public void handleFailed(WebErrorAsyncEvent event) {
-        WebRequest request = event.getRequest();
         postAsyncEvent(event);
     }
 

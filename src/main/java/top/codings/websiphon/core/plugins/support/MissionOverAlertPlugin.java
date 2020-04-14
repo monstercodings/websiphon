@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 爬虫无任务时通知插件
@@ -52,7 +53,7 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
                 requestHolder.add((T) params[0]);
             } else if (methodDesc.getName().equals("release")) {
                 WebRequest request = (WebRequest) params[0];
-                if (request.response().getResult() == null) {
+                if (request.status() != WebRequest.Status.SUCCEED) {
                     requestHolder.remove(params[0]);
                     checkLast((T) params[0]);
                 }
@@ -112,19 +113,20 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
                         T webRequest = iterator.next();
                         if ((System.currentTimeMillis() - ((BasicWebRequest) webRequest).getBeginAt()) > expired) {
 //                            log.warn("[{}]请求对象超时未完成 -> {}", webRequest.status(), webRequest);
+                            webRequest.failed(new TimeoutException("超时未完成请求"));
                             Integer count = result.get(webRequest.status().name());
                             if (null == count) {
                                 result.put(webRequest.status().name(), 1);
                             } else {
                                 result.put(webRequest.status().name(), count + 1);
                             }
-//                            iterator.remove();
+                            iterator.remove();
 //                            checkLast(webRequest);
                         }
                     }
                     log.debug("监控结果\n{}", JSON.toJSONString(result, true));
                     result.clear();
-                    TimeUnit.HOURS.sleep(1);
+                    TimeUnit.MILLISECONDS.sleep(expired);
                 } catch (InterruptedException e) {
                     return;
                 } catch (Exception e) {

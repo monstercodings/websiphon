@@ -49,6 +49,11 @@ public class BasicWebRequester implements WebRequester {
 
     @Override
     public void execute(WebRequest webRequest) throws WebNetworkException {
+        webRequest.status(WebRequest.Status.DOING);
+        if (webRequest instanceof BasicWebRequest) {
+            BasicWebRequest basicWebRequest = (BasicWebRequest) webRequest;
+            basicWebRequest.setBeginAt(System.currentTimeMillis());
+        }
         boolean proxy = true;
         WebProxy webProxy = null;
         if (webRequest instanceof BasicWebRequest) {
@@ -68,6 +73,11 @@ public class BasicWebRequester implements WebRequester {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel channel) throws Exception {
+                        channel.closeFuture().addListener((ChannelFutureListener) channelFuture -> {
+                            if (webRequest.status() == WebRequest.Status.DOING) {
+                                webRequest.failed(new WebNetworkException("网络异常"));
+                            }
+                        });
                         channel
                                 .pipeline()
                                 .addLast(new IdleStateHandler(30, 30, 30) {
@@ -80,7 +90,7 @@ public class BasicWebRequester implements WebRequester {
                                 .addLast(new HttpClientCodec())
                                 .addLast(new HttpResponseDecoder())
                                 .addLast(new HttpContentDecompressor())
-                                .addLast(new HttpObjectAggregator(512 * 1024))
+                                .addLast(new HttpObjectAggregator(64 * 1024, true))
                                 .addLast(new SimpleChannelInboundHandler<FullHttpResponse>() {
                                     @Override
                                     protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpResponse fullHttpResponse) throws Exception {
@@ -164,11 +174,6 @@ public class BasicWebRequester implements WebRequester {
         } else {
             future = bootstrap.connect(httpProtocol.getHost(), httpProtocol.getPort());
         }
-        future.channel().closeFuture().addListener((ChannelFutureListener) channelFuture -> {
-            if (webRequest.status() == WebRequest.Status.DOING) {
-                webRequest.failed(new WebNetworkException("网络异常"));
-            }
-        });
         boolean finalProxy = proxy;
         WebProxy finalWebProxy = webProxy;
         future.addListener((ChannelFutureListener) channelFuture -> {

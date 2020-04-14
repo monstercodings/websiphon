@@ -75,6 +75,11 @@ public class BasicWebRequest implements WebRequest {
 
     @Override
     public void failed(Throwable throwable) {
+        synchronized (this) {
+            if (status == Status.ERROR) {
+                return;
+            }
+        }
         status = Status.ERROR;
         WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
         event.setThrowable(throwable);
