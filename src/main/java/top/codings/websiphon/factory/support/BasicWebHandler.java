@@ -96,8 +96,11 @@ public class BasicWebHandler implements WebHandler {
             webRequester.execute(request);
             return;
         } catch (StopWebRequestException e) {
-            request.status(WebRequest.Status.STOP);
             // 停止处理该请求
+            request.status(WebRequest.Status.STOP);
+            scheduler.release(request);
+            networkToken.release();
+            return;
         } catch (WebNetworkException e) {
             WebNetworkExceptionEvent exceptionEvent = new WebNetworkExceptionEvent();
             exceptionEvent.setRequest(request);
@@ -285,6 +288,8 @@ public class BasicWebHandler implements WebHandler {
                 return;
             } catch (StopWebRequestException e) {
                 request.status(WebRequest.Status.STOP);
+                scheduler.release(request);
+                return;
                 // 停止异常不做处理
             } catch (WebException e) {
                 WebParseExceptionEvent exceptionEvent = new WebParseExceptionEvent();

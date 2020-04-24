@@ -79,8 +79,8 @@ public class BasicWebRequest implements WebRequest {
             if (status == Status.ERROR) {
                 return;
             }
+            status = Status.ERROR;
         }
-        status = Status.ERROR;
         WebNetworkExceptionEvent event = new WebNetworkExceptionEvent();
         event.setThrowable(throwable);
         event.setRequest(this);

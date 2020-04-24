@@ -30,7 +30,7 @@ import java.util.concurrent.TimeoutException;
  */
 @Slf4j
 public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
-    private long expired = 300 * 1000;
+    private long expired;
     private MissionOverHandler handler;
     @Getter
     private Set<T> requestHolder = Sets.newConcurrentHashSet();
@@ -38,12 +38,13 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
     private ExecutorService exe;
 
     public MissionOverAlertPlugin(MissionOverHandler<T> handler) {
-        this.handler = handler;
+        this(handler, false, 300 * 1000);
     }
 
-    public MissionOverAlertPlugin(MissionOverHandler handler, boolean monitor) {
+    public MissionOverAlertPlugin(MissionOverHandler handler, boolean monitor, long expired) {
         this.handler = handler;
         this.monitor = monitor;
+        this.expired = expired;
     }
 
     @Override
