@@ -90,7 +90,7 @@ public class BasicWebRequester implements WebRequester {
                                 .addLast(new HttpClientCodec())
                                 .addLast(new HttpResponseDecoder())
                                 .addLast(new HttpContentDecompressor())
-                                .addLast(new HttpObjectAggregator(64 * 1024, true))
+                                .addLast(new HttpObjectAggregator(8 * 1024 * 1024, true))
                                 .addLast(new SimpleChannelInboundHandler<FullHttpResponse>() {
                                     @Override
                                     protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpResponse fullHttpResponse) throws Exception {
