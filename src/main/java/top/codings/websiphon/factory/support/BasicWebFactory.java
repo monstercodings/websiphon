@@ -141,6 +141,9 @@ public class BasicWebFactory implements WebFactory {
         webHandler.setReadWritePipelines(readWritePipelines);
         webHandler.setScheduler(scheduler);
         webHandler.setPlugins(plugins);
+        if (webParser instanceof BasicWebParser) {
+            ((BasicWebParser) webParser).setHandler(webHandler);
+        }
         basicCrawlerContext.setWebHandler(webHandler);
         basicCrawler.setContext(basicCrawlerContext);
         return basicCrawler;

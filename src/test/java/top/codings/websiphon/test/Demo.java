@@ -7,7 +7,6 @@ import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.Test;
 import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.WebRequest;
-import top.codings.websiphon.bean.WebRequestDoc;
 import top.codings.websiphon.core.Crawler;
 import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
 import top.codings.websiphon.core.context.event.listener.WebAsyncEventListener;
