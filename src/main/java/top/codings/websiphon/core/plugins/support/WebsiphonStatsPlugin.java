@@ -3,41 +3,25 @@ package top.codings.websiphon.core.plugins.support;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import top.codings.websiphon.bean.MethodDesc;
-import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.async.WebErrorAsyncEvent;
-import top.codings.websiphon.core.plugins.WebPlugin;
+import top.codings.websiphon.core.plugins.AspectInfo;
+import top.codings.websiphon.core.plugins.WebPluginPro;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.util.HttpOperator;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 @Slf4j
-public class WebsiphonStatsPlugin implements WebPlugin {
+public class WebsiphonStatsPlugin implements WebPluginPro {
     private Map<Integer, AtomicLong> statusCodeCount = new ConcurrentHashMap<>();
     private Map<String, Map<Integer, AtomicLong>> hostStatusCodeCount = new ConcurrentHashMap<>();
     private AtomicLong failed = new AtomicLong(0);
     private Map<String, AtomicLong> hostFailed = new ConcurrentHashMap<>();
-
-    @Override
-    public Object[] before(Object[] params, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
-        if (params[0] instanceof WebRequest) {
-            WebRequest request = (WebRequest) params[0];
-            statsTotal(request);
-        } else if (params[0] instanceof WebErrorAsyncEvent) {
-            WebErrorAsyncEvent event = (WebErrorAsyncEvent) params[0];
-            WebRequest request = event.getRequest();
-            statsTotal(request);
-        }
-        return params;
-    }
 
     private void statsTotal(WebRequest request) {
         HttpOperator.HttpProtocol protocol = HttpOperator.resolve(request.uri());
@@ -96,23 +80,6 @@ public class WebsiphonStatsPlugin implements WebPlugin {
         atomicLong.incrementAndGet();
     }
 
-    @Override
-    public Object after(Object proxy, Object[] params, Object result, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
-        return result;
-    }
-
-    @Override
-    public Class[] getTargetInterface() {
-        return new Class[]{CrawlerContext.class};
-    }
-
-    @Override
-    public MethodDesc[] getMethods() {
-        return new MethodDesc[]{
-                new MethodDesc("doOnFinished", new Class[]{Object.class})
-        };
-    }
-
     public WebsiphonStats stats() {
         WebsiphonStats stats = new WebsiphonStats();
         for (Map.Entry<Integer, AtomicLong> entry : statusCodeCount.entrySet()) {
@@ -145,6 +112,79 @@ public class WebsiphonStatsPlugin implements WebPlugin {
         failed.set(0);
         hostStatusCodeCount.clear();
         hostFailed.clear();
+    }
+
+    /*@Override
+    public Object[] before(Object[] params, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
+        if (params[0] instanceof WebRequest) {
+            WebRequest request = (WebRequest) params[0];
+            statsTotal(request);
+        } else if (params[0] instanceof WebErrorAsyncEvent) {
+            WebErrorAsyncEvent event = (WebErrorAsyncEvent) params[0];
+            WebRequest request = event.getRequest();
+            statsTotal(request);
+        }
+        return params;
+    }
+
+    @Override
+    public Object after(Object proxy, Object[] params, Object result, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
+        return result;
+    }
+
+    @Override
+    public Class[] getTargetInterface() {
+        return new Class[]{CrawlerContext.class};
+    }
+
+    @Override
+    public MethodDesc[] getMethods() {
+        return new MethodDesc[]{
+                new MethodDesc("doOnFinished", new Class[]{Object.class})
+        };
+    }*/
+
+    @Override
+    public void onBefore(AspectInfo aspectInfo, Object[] args) throws WebException {
+        if (args[0] instanceof WebRequest) {
+            WebRequest request = (WebRequest) args[0];
+            statsTotal(request);
+        } else if (args[0] instanceof WebErrorAsyncEvent) {
+            WebErrorAsyncEvent event = (WebErrorAsyncEvent) args[0];
+            WebRequest request = event.getRequest();
+            statsTotal(request);
+        }
+    }
+
+    @Override
+    public Object onAfterReturning(AspectInfo aspectInfo, Object[] args, Object returnValue) {
+        return returnValue;
+    }
+
+    @Override
+    public void onAfterThrowing(AspectInfo aspectInfo, Object[] args, Throwable throwable) {
+
+    }
+
+    @Override
+    public void onFinal(AspectInfo aspectInfo, Object[] args, Throwable throwable) {
+
+    }
+
+    @Override
+    public AspectInfo[] aspectInfos() {
+        try {
+            return new AspectInfo[]{
+                    new AspectInfo(CrawlerContext.class, CrawlerContext.class.getMethod("doOnFinished", Object.class))
+            };
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public int index() {
+        return 5000;
     }
 
     @Getter

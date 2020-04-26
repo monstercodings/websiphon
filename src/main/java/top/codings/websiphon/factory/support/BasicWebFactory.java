@@ -11,8 +11,10 @@ import top.codings.websiphon.core.context.event.listener.WebSyncEventListener;
 import top.codings.websiphon.core.parser.BasicWebParser;
 import top.codings.websiphon.core.parser.WebParser;
 import top.codings.websiphon.core.pipeline.ReadWritePipeline;
+import top.codings.websiphon.core.plugins.AspectInfo;
 import top.codings.websiphon.core.plugins.PluginFactory;
 import top.codings.websiphon.core.plugins.WebPlugin;
+import top.codings.websiphon.core.plugins.WebPluginPro;
 import top.codings.websiphon.core.processor.WebProcessor;
 import top.codings.websiphon.core.requester.BasicWebRequester;
 import top.codings.websiphon.core.requester.WebRequester;
@@ -23,13 +25,14 @@ import top.codings.websiphon.factory.WebFactory;
 import top.codings.websiphon.factory.bean.WebHandler;
 import top.codings.websiphon.util.ParameterizedTypeUtils;
 
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
 @Data
 public class BasicWebFactory implements WebFactory {
     private WebRequester requester;
-    private List<WebPlugin> plugins = new LinkedList<>();
+    private List<WebPluginPro> plugins = new LinkedList<>();
     private List<WebProcessorDefinition> processorDefinitions = new LinkedList<>();
     private WebParser webParser;
     private List<ReadWritePipeline> readWritePipelines = new LinkedList<>();
@@ -72,8 +75,9 @@ public class BasicWebFactory implements WebFactory {
             requester = (WebRequester) type;
         } else if (type instanceof WebParser) {
             webParser = (WebParser) type;
-        } else if ((type instanceof WebPlugin)) {
-            plugins.add((WebPlugin) type);
+        } else if ((type instanceof WebPluginPro)) {
+            WebPluginPro plugin = (WebPluginPro) type;
+            plugins.add(plugin);
         } else if (type instanceof ReadWritePipeline) {
             readWritePipelines.add((ReadWritePipeline) type);
         } else if (type instanceof WebProcessor) {
@@ -92,6 +96,7 @@ public class BasicWebFactory implements WebFactory {
 
     @Override
     public Crawler build() {
+        plugins.sort(Comparator.comparingInt(WebPluginPro::index).reversed());
         if (requester == null) {
             requester = new BasicWebRequester();
         }
@@ -99,10 +104,47 @@ public class BasicWebFactory implements WebFactory {
             webParser = new BasicWebParser();
         }
         scheduler = new BasicRequestScheduler(permitForHost);
-        for (WebPlugin plugin : plugins) {
-            plugin.setWebFactory(this);
+        for (WebPluginPro plugin : plugins) {
+//            plugin.setWebFactory(this);
             plugin.init();
-            for (Class targetInterface : plugin.getTargetInterface()) {
+            AspectInfo[] aspectInfos = plugin.aspectInfos();
+            if (null == aspectInfos) {
+                continue;
+            }
+            for (AspectInfo aspectInfo : aspectInfos) {
+                Class clazz = aspectInfo.getClazz();
+                if (WebHandler.class.isAssignableFrom(clazz)) {
+                    webHandler = PluginFactory.create0(plugin, webHandler);
+                }
+                if (WebRequester.class.isAssignableFrom(clazz)) {
+                    requester = PluginFactory.create0(plugin, requester);
+                }
+                if (WebParser.class.isAssignableFrom(clazz)) {
+                    webParser = PluginFactory.create0(plugin, webParser);
+                }
+                if (ReadWritePipeline.class.isAssignableFrom(clazz)) {
+                    readWritePipelines.replaceAll(pipeline -> {
+                        if (clazz.isAssignableFrom(pipeline.getClass())) {
+                            return PluginFactory.create0(plugin, pipeline);
+                        }
+                        return pipeline;
+                    });
+                }
+                if (CrawlerContext.class.isAssignableFrom(clazz)) {
+                    basicCrawlerContext = PluginFactory.create0(plugin, basicCrawlerContext);
+                }
+                if (RequestScheduler.class.isAssignableFrom(clazz)) {
+                    scheduler = PluginFactory.create0(plugin, scheduler);
+                }
+                for (WebProcessorDefinition processorDefinition : processorDefinitions) {
+                    WebProcessor processor = processorDefinition.getProcessor();
+                    if (clazz.isAssignableFrom(processor.getClass())) {
+                        processor = PluginFactory.create0(plugin, processor);
+                    }
+                    processorDefinition.setProcessor(processor);
+                }
+            }
+            /*for (Class targetInterface : plugin.getTargetInterface()) {
                 if (WebHandler.class.isAssignableFrom(targetInterface)) {
                     webHandler = PluginFactory.create(plugin, webHandler);
                 }
@@ -133,7 +175,7 @@ public class BasicWebFactory implements WebFactory {
                     }
                     processorDefinition.setProcessor(processor);
                 }
-            }
+            }*/
         }
         processorDefinitions.forEach(definition -> webParser.addProcessor(definition));
         webHandler.setWebRequester(requester);

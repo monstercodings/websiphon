@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import top.codings.websiphon.util.HttpOperator;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -85,8 +86,13 @@ public class BasicCrawler implements Crawler {
         if (!context.isRunning()) {
             return PushResult.CRAWLER_STOP;
         }
-        if (null == request || StringUtils.isBlank(request.uri())) {
-            throw new NullPointerException("爬取任务不能为空");
+        if (null == request) {
+            return PushResult.TASK_EMPTY;
+        }
+        try {
+            HttpOperator.resolve(request.uri());
+        } catch (Exception e) {
+            return PushResult.URL_ERROR;
         }
         return context.getWebHandler().write(request);
     }

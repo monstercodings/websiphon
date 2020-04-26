@@ -1,4 +1,4 @@
 package top.codings.websiphon.exception;
 
-public class StopWebRequestException extends RuntimeException {
+public class StopWebRequestException extends WebException {
 }

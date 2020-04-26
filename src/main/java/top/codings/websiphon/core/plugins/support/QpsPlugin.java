@@ -4,10 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import top.codings.websiphon.bean.MethodDesc;
-import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
-import top.codings.websiphon.core.plugins.WebPlugin;
+import top.codings.websiphon.core.plugins.AspectInfo;
+import top.codings.websiphon.core.plugins.WebPluginPro;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.factory.bean.WebHandler;
 import top.codings.websiphon.util.HttpOperator;
@@ -23,7 +22,7 @@ import java.util.function.Consumer;
 
 @Slf4j
 @NoArgsConstructor
-public class QpsPlugin implements WebPlugin {
+public class QpsPlugin implements WebPluginPro {
     private ExecutorService executorService;
     private AtomicLong totalNow = new AtomicLong(0);
     private AtomicLong totalPrev = new AtomicLong(0);
@@ -33,6 +32,57 @@ public class QpsPlugin implements WebPlugin {
 
     public QpsPlugin(Consumer<QpsStats> listener) {
         this.listener = listener;
+    }
+
+    @Override
+    public void onBefore(AspectInfo aspectInfo, Object[] args) throws WebException {
+        if (args[0] instanceof WebRequest) {
+            totalNow.incrementAndGet();
+            WebRequest request = (WebRequest) args[0];
+            HttpOperator.HttpProtocol protocol = HttpOperator.resolve(request.uri());
+            HostQps hostQps = hostQpsMap.get(protocol.getHost());
+            if (null == hostQps) {
+                synchronized (hostQpsMap) {
+                    hostQps = hostQpsMap.get(protocol.getHost());
+                    if (null == hostQps) {
+                        hostQps = new HostQps(protocol.getHost());
+                        hostQpsMap.put(protocol.getHost(), hostQps);
+                    }
+                }
+            }
+            hostQps.now.incrementAndGet();
+        }
+    }
+
+    @Override
+    public Object onAfterReturning(AspectInfo aspectInfo, Object[] args, Object returnValue) {
+        return returnValue;
+    }
+
+    @Override
+    public void onAfterThrowing(AspectInfo aspectInfo, Object[] args, Throwable throwable) {
+
+    }
+
+    @Override
+    public void onFinal(AspectInfo aspectInfo, Object[] args, Throwable throwable) {
+
+    }
+
+    @Override
+    public AspectInfo[] aspectInfos() {
+        try {
+            return new AspectInfo[]{
+                    new AspectInfo(WebHandler.class, WebHandler.class.getMethod("doOnFinished", Object.class))
+            };
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public int index() {
+        return 4000;
     }
 
     @Override
@@ -70,7 +120,7 @@ public class QpsPlugin implements WebPlugin {
         hostQpsMap.clear();
     }
 
-    @Override
+    /*@Override
     public Object[] before(Object[] params, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
         if (params[0] instanceof WebRequest) {
             totalNow.incrementAndGet();
@@ -108,7 +158,7 @@ public class QpsPlugin implements WebPlugin {
         return new MethodDesc[]{
                 new MethodDesc("doOnFinished", new Class[]{Object.class})
         };
-    }
+    }*/
 
     public QpsStats stats() {
         QpsStats qpsStats = new QpsStats(totalQps, Collections.unmodifiableMap(hostQpsMap));

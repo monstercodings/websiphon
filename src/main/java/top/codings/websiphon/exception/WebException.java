@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class WebException extends Exception {
+public class WebException extends RuntimeException {
     protected Object accessory;
 
     public WebException() {

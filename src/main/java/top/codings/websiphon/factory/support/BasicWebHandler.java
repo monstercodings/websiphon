@@ -19,7 +19,7 @@ import top.codings.websiphon.core.context.event.sync.WebBeforeParseEvent;
 import top.codings.websiphon.core.context.event.sync.WebBeforeRequestEvent;
 import top.codings.websiphon.core.parser.WebParser;
 import top.codings.websiphon.core.pipeline.ReadWritePipeline;
-import top.codings.websiphon.core.plugins.WebPlugin;
+import top.codings.websiphon.core.plugins.WebPluginPro;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.schedule.support.BasicRequestScheduler;
 import top.codings.websiphon.exception.StopWebRequestException;
@@ -27,6 +27,7 @@ import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.exception.WebNetworkException;
 import top.codings.websiphon.factory.bean.CrawlThreadPoolExecutor;
 import top.codings.websiphon.factory.bean.WebHandler;
+import top.codings.websiphon.util.HttpOperator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +61,7 @@ public class BasicWebHandler implements WebHandler {
     @Setter
     private BasicRequestScheduler scheduler;
     @Setter
-    private List<WebPlugin> plugins;
+    private List<WebPluginPro> plugins;
     /**
      * 异步事件池
      */
@@ -124,7 +125,11 @@ public class BasicWebHandler implements WebHandler {
 
     @Override
     public PushResult write(WebRequest request) {
-        scheduler.handle(request);
+        try {
+            scheduler.handle(request);
+        } catch (StopWebRequestException e) {
+            return PushResult.URL_REPEAT;
+        }
         return PushResult.SUCCESS;
         /*PushResult result;
         try {
@@ -189,7 +194,18 @@ public class BasicWebHandler implements WebHandler {
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
                         for (ReadWritePipeline readWritePipeline : readWritePipelines) {
-                            Optional.ofNullable(readWritePipeline.read()).ifPresent(scheduler::handle);
+                            Optional.ofNullable(readWritePipeline.read()).ifPresent(request -> {
+                                try {
+                                    HttpOperator.resolve(request.uri());
+                                } catch (Exception e) {
+                                    return;
+                                }
+                                try {
+                                    scheduler.handle(request);
+                                } catch (StopWebRequestException e) {
+
+                                }
+                            });
                         }
                     }
                 } catch (InterruptedException e) {

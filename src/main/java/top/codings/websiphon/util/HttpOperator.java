@@ -68,6 +68,9 @@ public class HttpOperator {
     }
 
     public static HttpProtocol resolve(String url) throws IllegalArgumentException {
+        if (StringUtils.isBlank(url)) {
+            throw new IllegalArgumentException("URL不能为空");
+        }
         Matcher matcher = pattern.matcher(url);
         if (!matcher.find()) {
             throw new IllegalArgumentException(String.format("URL不正确 %s", url));

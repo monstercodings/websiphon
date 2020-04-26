@@ -1,11 +1,41 @@
 package top.codings.websiphon.core.plugins;
 
-import top.codings.websiphon.exception.WebPluginException;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.cglib.proxy.Enhancer;
+import top.codings.websiphon.exception.WebPluginException;
 
 @Slf4j
 public class PluginFactory {
+    public final static <T> T create0(WebPluginPro webPlugin, T target) {
+        if (target == null) {
+            throw new WebPluginException("插件的目标对象不能为空");
+        }
+        return create0(webPlugin, target, (Class<T>) target.getClass());
+    }
+
+    public final static <T> T create0(WebPluginPro webPlugin, Class<T> clazz) {
+        if (clazz == null) {
+            throw new WebPluginException("插件的Class不能为空");
+        }
+        return create0(webPlugin, null, clazz);
+    }
+
+    public final static <T> T create0(WebPluginPro webPlugin, T target, Class<T> clazz) {
+        if (clazz.getName().contains("$$")) {
+            try {
+                clazz = (Class<T>) Class.forName(clazz.getName().substring(0, clazz.getName().indexOf("$$")));
+//                clazz = (Class<T>) clazz.getClassLoader().loadClass(clazz.getName().substring(0, clazz.getName().indexOf("$$")));
+            } catch (ClassNotFoundException e) {
+                log.error("无法找到增强类 -> {}", clazz.getName(), e);
+                return target;
+            }
+        }
+        Enhancer enhancer = new Enhancer();
+        enhancer.setCallback(new WebInterceptorPro(clazz.isInterface(), target, webPlugin));
+        enhancer.setSuperclass(clazz);
+        return (T) enhancer.create();
+    }
+
     public final static <T> T create(WebPlugin webPlugin, T target) {
         return create(webPlugin, target, null);
     }

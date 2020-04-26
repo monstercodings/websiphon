@@ -41,7 +41,7 @@ public class WebInterceptor implements MethodInterceptor {
     }
 
     @Override
-    public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+    public Object intercept(Object proxy, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
         Object result = null;
         MethodDesc methodDesc = null;
         for (int i = 0; i < descs.length; i++) {
@@ -82,7 +82,7 @@ public class WebInterceptor implements MethodInterceptor {
                     // 如果代理的是真正实现对象的话就执行
                     if (real) {
                         if (target == null) {
-                            result = methodProxy.invokeSuper(o, objects);
+                            result = methodProxy.invokeSuper(proxy, objects);
                         } else {
                             result = method.invoke(target, objects);
                         }
@@ -92,16 +92,7 @@ public class WebInterceptor implements MethodInterceptor {
                 } catch (Throwable throwable) {
                     point.point = ReturnPoint.Point.ERROR;
                     if (throwable instanceof InvocationTargetException) {
-                        if (((InvocationTargetException) throwable).getTargetException() instanceof WebParseException) {
-                            WebParseException exception = (WebParseException) ((InvocationTargetException) throwable).getTargetException();
-                            throw exception;
-                        } else if (((InvocationTargetException) throwable).getTargetException() instanceof WebNetworkException) {
-                            WebNetworkException exception = (WebNetworkException) ((InvocationTargetException) throwable).getTargetException();
-                            throw exception;
-                        } else if (((InvocationTargetException) throwable).getTargetException() instanceof WebException) {
-                            WebException exception = (WebException) ((InvocationTargetException) throwable).getTargetException();
-                            throw exception;
-                        }
+                        throw ((InvocationTargetException) throwable).getTargetException();
                     }
                     Throwable inner = throwable;
                     while (true) {
@@ -114,7 +105,7 @@ public class WebInterceptor implements MethodInterceptor {
                     }
                     throw throwable;
                 } finally {
-                    result = webPlugin.after(o, objects, result, targetClass, methodDesc, point);
+                    result = webPlugin.after(proxy, objects, result, targetClass, methodDesc, point);
                 }
             } while (point.point != ReturnPoint.Point.BREAK);
         } else {
@@ -122,7 +113,7 @@ public class WebInterceptor implements MethodInterceptor {
                 // 如果代理的是真正实现对象的话就执行
                 if (real) {
                     if (target == null) {
-                        result = methodProxy.invokeSuper(o, objects);
+                        result = methodProxy.invokeSuper(proxy, objects);
                     } else {
                         result = method.invoke(target, objects);
                     }

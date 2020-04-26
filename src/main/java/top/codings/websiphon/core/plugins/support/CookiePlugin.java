@@ -10,12 +10,11 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
-import top.codings.websiphon.bean.MethodDesc;
-import top.codings.websiphon.bean.ReturnPoint;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebResponse;
 import top.codings.websiphon.core.context.CrawlerContext;
-import top.codings.websiphon.core.plugins.WebPlugin;
+import top.codings.websiphon.core.plugins.AspectInfo;
+import top.codings.websiphon.core.plugins.WebPluginPro;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.util.HttpOperator;
@@ -29,14 +28,79 @@ import java.util.function.Consumer;
 
 @Slf4j
 @NoArgsConstructor
-public class CookiePlugin implements WebPlugin {
+public class CookiePlugin implements WebPluginPro {
     private Map<String, Map<String, Cookie>> hostCookies = new ConcurrentHashMap<>();
     private Consumer<Map<String, Map<String, Cookie>>> initializer;
     private Consumer<Map<String, Map<String, Cookie>>> close;
+    private Map<Class, AspectInfo> aspectInfoMap = new HashMap<>();
 
     public CookiePlugin(Consumer<Map<String, Map<String, Cookie>>> initializer, Consumer<Map<String, Map<String, Cookie>>> close) {
         this.initializer = initializer;
         this.close = close;
+        try {
+            aspectInfoMap.put(WebRequester.class, new AspectInfo(WebRequester.class, WebRequester.class.getMethod("execute", WebRequest.class)));
+            aspectInfoMap.put(CrawlerContext.class, new AspectInfo(CrawlerContext.class, WebRequester.class.getMethod("doOnFinished", Object.class)));
+        } catch (NoSuchMethodException e) {
+
+        }
+    }
+
+    @Override
+    public void onBefore(AspectInfo aspectInfo, Object[] args) throws WebException {
+        if (aspectInfoMap.get(WebRequester.class) == aspectInfo) {
+            WebRequest request = (WebRequest) args[0];
+            if (request.headers().containsKey("cookie")) {
+                Map<String, Cookie> cookies = getCookies(request);
+                String str = request.headers().get("cookie");
+                String[] cookieStrs = str.split(";");
+                for (String cookieStr : cookieStrs) {
+                    cookieStr = cookieStr.trim();
+                    Cookie cookie = ClientCookieDecoder.LAX.decode(cookieStr);
+                    cookies.put(cookie.name(), cookie);
+                }
+            } else {
+                HttpOperator.HttpProtocol protocol = HttpOperator.resolve(request.uri());
+                Map<String, Cookie> cookies = hostCookies.get(protocol.getHost());
+                if (MapUtils.isNotEmpty(cookies)) {
+                    request.headers().put("cookie", ClientCookieEncoder.LAX.encode(cookies.values()));
+                }
+            }
+        } else if (aspectInfoMap.get(CrawlerContext.class) == aspectInfo) {
+            if (WebRequest.class.isAssignableFrom(args[0].getClass())) {
+                WebRequest request = (WebRequest) args[0];
+                Map<String, Cookie> cookies = getCookies(request);
+                WebResponse response = request.response();
+                List<Cookie> respCookies = response.getCookies();
+                for (Cookie respCookie : respCookies) {
+                    cookies.put(respCookie.name(), respCookie);
+                }
+            }
+        }
+    }
+
+    @Override
+    public Object onAfterReturning(AspectInfo aspectInfo, Object[] args, Object returnValue) {
+        return returnValue;
+    }
+
+    @Override
+    public void onAfterThrowing(AspectInfo aspectInfo, Object[] args, Throwable throwable) {
+
+    }
+
+    @Override
+    public void onFinal(AspectInfo aspectInfo, Object[] args, Throwable throwable) {
+
+    }
+
+    @Override
+    public AspectInfo[] aspectInfos() {
+        return aspectInfoMap.values().toArray(new AspectInfo[0]);
+    }
+
+    @Override
+    public int index() {
+        return 10000;
     }
 
     @Override
@@ -53,7 +117,7 @@ public class CookiePlugin implements WebPlugin {
         }
     }
 
-    @Override
+    /*@Override
     public Object[] before(Object[] params, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
         if (WebRequester.class.isAssignableFrom(targetClass)) {
             WebRequest request = (WebRequest) params[0];
@@ -87,21 +151,6 @@ public class CookiePlugin implements WebPlugin {
         return params;
     }
 
-    private Map<String, Cookie> getCookies(WebRequest request) {
-        HttpOperator.HttpProtocol protocol = HttpOperator.resolve(request.uri());
-        Map<String, Cookie> cookies = hostCookies.get(protocol.getHost());
-        if (null == cookies) {
-            synchronized (this) {
-                cookies = hostCookies.get(protocol.getHost());
-                if (null == cookies) {
-                    cookies = new ConcurrentHashMap<>();
-                    hostCookies.put(protocol.getHost(), cookies);
-                }
-            }
-        }
-        return cookies;
-    }
-
     @Override
     public Object after(Object proxy, Object[] params, Object result, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
         return result;
@@ -117,6 +166,21 @@ public class CookiePlugin implements WebPlugin {
         return new MethodDesc[]{
                 new MethodDesc("execute", new Class[]{WebRequest.class}),
                 new MethodDesc("doOnFinished", new Class[]{Object.class})};
+    }*/
+
+    private Map<String, Cookie> getCookies(WebRequest request) {
+        HttpOperator.HttpProtocol protocol = HttpOperator.resolve(request.uri());
+        Map<String, Cookie> cookies = hostCookies.get(protocol.getHost());
+        if (null == cookies) {
+            synchronized (this) {
+                cookies = hostCookies.get(protocol.getHost());
+                if (null == cookies) {
+                    cookies = new ConcurrentHashMap<>();
+                    hostCookies.put(protocol.getHost(), cookies);
+                }
+            }
+        }
+        return cookies;
     }
 
     public static class ReadFromFile {
