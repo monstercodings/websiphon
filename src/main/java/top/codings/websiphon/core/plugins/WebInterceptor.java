@@ -119,6 +119,9 @@ public class WebInterceptor implements MethodInterceptor {
                     }
                 }
             } catch (Throwable throwable) {
+                if (throwable instanceof InvocationTargetException) {
+                    throw ((InvocationTargetException) throwable).getTargetException();
+                }
                 Throwable inner = throwable;
                 while (true) {
                     Throwable temp = throwable.getCause();

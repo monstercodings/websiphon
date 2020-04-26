@@ -99,8 +99,8 @@ public class BasicWebHandler implements WebHandler {
         } catch (StopWebRequestException e) {
             // 停止处理该请求
             request.status(WebRequest.Status.STOP);
-            scheduler.release(request);
             networkToken.release();
+            scheduler.release(request);
             return;
         } catch (WebNetworkException e) {
             WebNetworkExceptionEvent exceptionEvent = new WebNetworkExceptionEvent();
@@ -119,8 +119,8 @@ public class BasicWebHandler implements WebHandler {
             postAsyncEvent(event);
         }
         request.status(WebRequest.Status.ERROR);
-        scheduler.release(request);
         networkToken.release();
+        scheduler.release(request);
     }
 
     @Override
@@ -289,24 +289,18 @@ public class BasicWebHandler implements WebHandler {
         @Override
         public void run() {
             try {
-                WebBeforeParseEvent event = new WebBeforeParseEvent();
-                event.setRequest(request);
-                postSyncEvent(event);
                 webParser.parse(request);
                 if (request instanceof BasicWebRequest) {
                     ((BasicWebRequest) request).setEndAt(System.currentTimeMillis());
                 }
-                request.status(WebRequest.Status.SUCCEED);
-//                rateResult.addSuccess(request.getEndAt() - request.getBeginAt());
                 WebAfterParseEvent afterParseEvent = new WebAfterParseEvent();
                 afterParseEvent.setRequest(request);
                 postSyncEvent(afterParseEvent);
                 return;
             } catch (StopWebRequestException e) {
-                request.status(WebRequest.Status.STOP);
-                scheduler.release(request);
-                return;
                 // 停止异常不做处理
+                request.status(WebRequest.Status.STOP);
+                return;
             } catch (WebException e) {
                 WebParseExceptionEvent exceptionEvent = new WebParseExceptionEvent();
                 exceptionEvent.setRequest(request);
@@ -320,7 +314,6 @@ public class BasicWebHandler implements WebHandler {
             } finally {
                 parseToken.release();
             }
-            request.status(WebRequest.Status.ERROR);
         }
     }
 }

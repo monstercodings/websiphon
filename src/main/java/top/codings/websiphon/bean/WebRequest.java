@@ -58,6 +58,8 @@ public interface WebRequest {
         DOING(),
         ERROR(),
         STOP(),
-        SUCCEED();
+        SUCCEED(),
+        FINISH(),
+        ;
     }
 }
