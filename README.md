@@ -9,7 +9,7 @@
 <dependency>
     <groupId>top.codings</groupId>
     <artifactId>websiphon</artifactId>
-    <version>0.1.16</version>
+    <version>0.1.25</version>
 </dependency>
 ```
 
