@@ -5,7 +5,7 @@ import com.google.common.hash.Funnels;
 import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.plugins.AspectInfo;
-import top.codings.websiphon.core.plugins.WebPluginPro;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.schedule.RequestScheduler;
 import top.codings.websiphon.exception.WebException;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class UrlFilterPlugin<T extends WebRequest> implements WebPluginPro {
+public class UrlFilterPlugin<T extends WebRequest> implements WebPlugin {
     private boolean memCache;
     private int maxCount;
     private double fpp;

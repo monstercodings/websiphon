@@ -4,7 +4,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.plugins.AspectInfo;
-import top.codings.websiphon.core.plugins.WebPluginPro;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.exception.WebException;
 
@@ -13,7 +13,7 @@ import top.codings.websiphon.exception.WebException;
  * 与URL过滤插件一起使用时，需要放在UrlFilterPlugin的前面
  */
 @Slf4j
-public class RateLimiterPlugin implements WebPluginPro {
+public class RateLimiterPlugin implements WebPlugin {
     private RateLimiter rateLimiter;
 
     public RateLimiterPlugin(double permitsPerSecond) {

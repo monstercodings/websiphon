@@ -14,7 +14,7 @@ import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebResponse;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.plugins.AspectInfo;
-import top.codings.websiphon.core.plugins.WebPluginPro;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.util.HttpOperator;
@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 
 @Slf4j
 @NoArgsConstructor
-public class CookiePlugin implements WebPluginPro {
+public class CookiePlugin implements WebPlugin {
     private Map<String, Map<String, Cookie>> hostCookies = new ConcurrentHashMap<>();
     private Consumer<Map<String, Map<String, Cookie>>> initializer;
     private Consumer<Map<String, Map<String, Cookie>>> close;

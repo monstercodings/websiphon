@@ -30,7 +30,7 @@ public class Demo {
     public void test() throws InterruptedException {
         // QPS插件 - 每隔一秒会回调一次用户自定义的函数，入参为统计结果
         QpsPlugin qpsPlugin = new QpsPlugin(qpsStats -> {
-            log.debug("\n总QPS -> {}/s\n{}", qpsStats.getQps(), JSON.toJSONString(qpsStats.getHostQpsMap(), true));
+//            log.debug("\n总QPS -> {}/s\n{}", qpsStats.getQps(), JSON.toJSONString(qpsStats.getHostQpsMap(), true));
         });
         WebsiphonStatsPlugin statsPlugin = new WebsiphonStatsPlugin();
         WebProxy proxy = new WebProxy("127.0.0.1", 1080);
@@ -54,7 +54,7 @@ public class Demo {
                     }
                 })
                 // 代理池插件 - 为爬虫提供代理功能
-                .addLast(new ProxyPlugin(pool))
+//                .addLast(new ProxyPlugin(pool))
                 // Cookie插件 - 提供cookie维护功能，主要用于需要维护登录状态的场景
                 .addLast(new CookiePlugin(
                         CookiePlugin.ReadFromFile.from("config/cookie.txt"),
@@ -100,7 +100,7 @@ public class Demo {
                 .addListener(new WebAsyncEventListener<WebNetworkExceptionEvent>() {
                     @Override
                     public void listen(WebNetworkExceptionEvent event) {
-                        log.error("网络请求异常", event.getThrowable());
+//                        log.error("网络请求异常", event.getThrowable());
                     }
                 })
                 // 限制网络最大并发数

@@ -7,7 +7,7 @@ import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.context.CrawlerContext;
 import top.codings.websiphon.core.context.event.async.WebErrorAsyncEvent;
 import top.codings.websiphon.core.plugins.AspectInfo;
-import top.codings.websiphon.core.plugins.WebPluginPro;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.util.HttpOperator;
 
@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
-public class WebsiphonStatsPlugin implements WebPluginPro {
+public class WebsiphonStatsPlugin implements WebPlugin {
     private Map<Integer, AtomicLong> statusCodeCount = new ConcurrentHashMap<>();
     private Map<String, Map<Integer, AtomicLong>> hostStatusCodeCount = new ConcurrentHashMap<>();
     private AtomicLong failed = new AtomicLong(0);

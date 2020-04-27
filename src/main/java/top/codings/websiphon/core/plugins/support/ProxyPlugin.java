@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.plugins.AspectInfo;
-import top.codings.websiphon.core.plugins.WebPluginPro;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.proxy.bean.WebProxy;
 import top.codings.websiphon.core.proxy.pool.ProxyPool;
 import top.codings.websiphon.core.requester.WebRequester;
@@ -14,7 +14,7 @@ import top.codings.websiphon.exception.WebException;
  * 启动代理能力的插件
  */
 @Slf4j
-public class ProxyPlugin implements WebPluginPro {
+public class ProxyPlugin implements WebPlugin {
     private ProxyPool pool;
 
     public ProxyPlugin(ProxyPool pool) {

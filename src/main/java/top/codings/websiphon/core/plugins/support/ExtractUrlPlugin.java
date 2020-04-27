@@ -12,7 +12,7 @@ import top.codings.websiphon.core.context.event.async.WebExceptionEvent;
 import top.codings.websiphon.core.context.event.sync.WebLinkEvent;
 import top.codings.websiphon.core.parser.WebParser;
 import top.codings.websiphon.core.plugins.AspectInfo;
-import top.codings.websiphon.core.plugins.WebPluginPro;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.util.HttpOperator;
 
@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * 必须添加在任务列表监控插件 MissionOverAlertPlugin 之前
  */
 @Slf4j
-public class ExtractUrlPlugin implements WebPluginPro {
+public class ExtractUrlPlugin implements WebPlugin {
     private String rawfilterRegex = "(\\w+)://([^/:]+)(:\\d*)?([^# ]*)";
     private Pattern rawFilterPattern = Pattern.compile(rawfilterRegex);
     private String filterRegex = rawfilterRegex;

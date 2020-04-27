@@ -14,7 +14,6 @@ import top.codings.websiphon.core.pipeline.ReadWritePipeline;
 import top.codings.websiphon.core.plugins.AspectInfo;
 import top.codings.websiphon.core.plugins.PluginFactory;
 import top.codings.websiphon.core.plugins.WebPlugin;
-import top.codings.websiphon.core.plugins.WebPluginPro;
 import top.codings.websiphon.core.processor.WebProcessor;
 import top.codings.websiphon.core.requester.BasicWebRequester;
 import top.codings.websiphon.core.requester.WebRequester;
@@ -25,14 +24,12 @@ import top.codings.websiphon.factory.WebFactory;
 import top.codings.websiphon.factory.bean.WebHandler;
 import top.codings.websiphon.util.ParameterizedTypeUtils;
 
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 @Data
 public class BasicWebFactory implements WebFactory {
     private WebRequester requester;
-    private List<WebPluginPro> plugins = new LinkedList<>();
+    private List<WebPlugin> plugins = new LinkedList<>();
     private List<WebProcessorDefinition> processorDefinitions = new LinkedList<>();
     private WebParser webParser;
     private List<ReadWritePipeline> readWritePipelines = new LinkedList<>();
@@ -75,8 +72,8 @@ public class BasicWebFactory implements WebFactory {
             requester = (WebRequester) type;
         } else if (type instanceof WebParser) {
             webParser = (WebParser) type;
-        } else if ((type instanceof WebPluginPro)) {
-            WebPluginPro plugin = (WebPluginPro) type;
+        } else if ((type instanceof WebPlugin)) {
+            WebPlugin plugin = (WebPlugin) type;
             plugins.add(plugin);
         } else if (type instanceof ReadWritePipeline) {
             readWritePipelines.add((ReadWritePipeline) type);
@@ -96,7 +93,7 @@ public class BasicWebFactory implements WebFactory {
 
     @Override
     public Crawler build() {
-        plugins.sort(Comparator.comparingInt(WebPluginPro::index).reversed());
+        plugins.sort(Comparator.comparingInt(WebPlugin::index).reversed());
         if (requester == null) {
             requester = new BasicWebRequester();
         }
@@ -104,15 +101,19 @@ public class BasicWebFactory implements WebFactory {
             webParser = new BasicWebParser();
         }
         scheduler = new BasicRequestScheduler(permitForHost);
-        for (WebPluginPro plugin : plugins) {
+        for (WebPlugin plugin : plugins) {
 //            plugin.setWebFactory(this);
             plugin.init();
             AspectInfo[] aspectInfos = plugin.aspectInfos();
             if (null == aspectInfos) {
                 continue;
             }
+            Set<Class> classSet = new HashSet<>();
             for (AspectInfo aspectInfo : aspectInfos) {
                 Class clazz = aspectInfo.getClazz();
+                if (!classSet.add(clazz)) {
+                    continue;
+                }
                 if (WebHandler.class.isAssignableFrom(clazz)) {
                     webHandler = PluginFactory.create0(plugin, webHandler);
                 }

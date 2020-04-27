@@ -3,7 +3,7 @@ package top.codings.websiphon.test;
 import org.junit.jupiter.api.Test;
 import top.codings.websiphon.core.plugins.AspectInfo;
 import top.codings.websiphon.core.plugins.PluginFactory;
-import top.codings.websiphon.core.plugins.WebPluginPro;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.exception.WebException;
 
 import java.lang.reflect.Method;
@@ -12,7 +12,7 @@ public class CglibTest {
     @Test
     public void test() {
 //        Ztest ztest = new Atest();
-        Ztest ztest = PluginFactory.create0(new WebPluginPro() {
+        Ztest ztest = PluginFactory.create0(new WebPlugin() {
             @Override
             public void onBefore(AspectInfo aspectInfo, Object[] args) throws WebException {
                 System.out.println("[1] 前置 -> " + args[0]);
@@ -53,7 +53,7 @@ public class CglibTest {
                 return 2;
             }
         }, Btest.class);
-        ztest = PluginFactory.create0(new WebPluginPro() {
+        ztest = PluginFactory.create0(new WebPlugin() {
             @Override
             public void onBefore(AspectInfo aspectInfo, Object[] args) throws WebException {
                 System.out.println("[2] 前置: -> " + args[0]);

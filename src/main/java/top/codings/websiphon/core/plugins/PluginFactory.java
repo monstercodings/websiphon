@@ -6,21 +6,21 @@ import top.codings.websiphon.exception.WebPluginException;
 
 @Slf4j
 public class PluginFactory {
-    public final static <T> T create0(WebPluginPro webPlugin, T target) {
+    public final static <T> T create0(WebPlugin webPlugin, T target) {
         if (target == null) {
             throw new WebPluginException("插件的目标对象不能为空");
         }
         return create0(webPlugin, target, (Class<T>) target.getClass());
     }
 
-    public final static <T> T create0(WebPluginPro webPlugin, Class<T> clazz) {
+    public final static <T> T create0(WebPlugin webPlugin, Class<T> clazz) {
         if (clazz == null) {
             throw new WebPluginException("插件的Class不能为空");
         }
         return create0(webPlugin, null, clazz);
     }
 
-    public final static <T> T create0(WebPluginPro webPlugin, T target, Class<T> clazz) {
+    public final static <T> T create0(WebPlugin webPlugin, T target, Class<T> clazz) {
         if (clazz.getName().contains("$$")) {
             try {
                 clazz = (Class<T>) Class.forName(clazz.getName().substring(0, clazz.getName().indexOf("$$")));
@@ -31,12 +31,12 @@ public class PluginFactory {
             }
         }
         Enhancer enhancer = new Enhancer();
-        enhancer.setCallback(new WebInterceptorPro(clazz.isInterface(), target, webPlugin));
+        enhancer.setCallback(new WebInterceptor(clazz.isInterface(), target, webPlugin));
         enhancer.setSuperclass(clazz);
         return (T) enhancer.create();
     }
 
-    public final static <T> T create(WebPlugin webPlugin, T target) {
+    /*public final static <T> T create(WebPlugin webPlugin, T target) {
         return create(webPlugin, target, null);
     }
 
@@ -67,5 +67,5 @@ public class PluginFactory {
             return loop(clazz.getSuperclass());
         }
         return clazz;
-    }
+    }*/
 }

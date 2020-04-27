@@ -1,139 +1,123 @@
 package top.codings.websiphon.core.plugins;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
-import top.codings.websiphon.bean.MethodDesc;
-import top.codings.websiphon.bean.ReturnPoint;
-import top.codings.websiphon.exception.StopWebRequestException;
 import top.codings.websiphon.exception.WebException;
-import top.codings.websiphon.exception.WebNetworkException;
-import top.codings.websiphon.exception.WebParseException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-@Data
 @Slf4j
 public class WebInterceptor implements MethodInterceptor {
-    private boolean real;
+    private boolean interfaceClass;
     private Object target;
-    private WebPlugin webPlugin;
-    private MethodDesc[] descs;
+    private WebPlugin plugin;
+    private AspectInfo[] aspectInfos;
+    //    private List<WebPlugin> plugins = new LinkedList<>();
 
-    public WebInterceptor(WebPlugin webPlugin) {
-        this(null, webPlugin);
-
-    }
-
-    public WebInterceptor(Object target, WebPlugin webPlugin) {
+    public WebInterceptor(boolean interfaceClass, Object target, WebPlugin plugin) {
+        this.interfaceClass = interfaceClass;
         this.target = target;
-        this.webPlugin = webPlugin;
-        descs = webPlugin.getMethods();
+        this.plugin = plugin;
     }
 
-    public WebInterceptor(boolean real, Object target, WebPlugin webPlugin) {
-        this.real = real;
-        this.target = target;
-        this.webPlugin = webPlugin;
-        descs = webPlugin.getMethods();
-    }
+
+    /*public WebInterceptor addPlugin(WebPlugin plugin) {
+        plugins.add(plugin);
+        plugins.sort(Comparator.comparingInt(WebPlugin::index));
+        return this;
+    }*/
 
     @Override
-    public Object intercept(Object proxy, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+    public Object intercept(Object proxy, Method currentMethod, Object[] args, MethodProxy methodProxy) throws Throwable {
+        if (null == aspectInfos) {
+            aspectInfos = plugin.aspectInfos();
+            if (null == aspectInfos) {
+                aspectInfos = new AspectInfo[0];
+            }
+        }
+        for (AspectInfo aspectInfo : aspectInfos) {
+            if (aspectInfo.getClazz().isAssignableFrom(proxy.getClass()) &&
+                    currentMethod.getName().equals(aspectInfo.getMethod().getName()) &&
+                    equalParamTypes(aspectInfo.getMethod().getParameterTypes(), currentMethod.getParameterTypes())) {
+                return doAspect(aspectInfo, plugin, proxy, args, methodProxy);
+            }
+        }
+        return target == null ? methodProxy.invokeSuper(proxy, args) : methodProxy.invoke(target, args);
+    }
+
+    private boolean equalParamTypes(Class<?>[] params1, Class<?>[] params2) {
+        if (params1.length == params2.length) {
+            for (int i = 0; i < params1.length; i++) {
+                if (params1[i] != params2[i])
+                    return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private Object doAspect(AspectInfo aspectInfo, WebPlugin plugin, Object proxy, Object[] args, MethodProxy methodProxy) throws Throwable {
+        Throwable t = null;
         Object result = null;
-        MethodDesc methodDesc = null;
-        for (int i = 0; i < descs.length; i++) {
-            if (!method.getName().equals(descs[i].getName())) {
-                continue;
-            }
-            Class[] methodParameterTypes = method.getParameterTypes();
-            Class[] descParameterTypes = descs[i].getParameterTypes();
-            if (methodParameterTypes.length != descParameterTypes.length) {
-                continue;
-            }
-            boolean tempResult = true;
-            for (int j = 0; j < methodParameterTypes.length; j++) {
-                if (methodParameterTypes[j] != descParameterTypes[j]) {
-                    tempResult = false;
-                    break;
+        try {
+            /*try {
+                plugin.onBefore(aspectInfo, args);
+            } catch (WebException e) {
+                return null;
+            }*/
+            plugin.onBefore(aspectInfo, args);
+            if (target == null) {
+                if (!interfaceClass) {
+                    result = methodProxy.invokeSuper(proxy, args);
                 }
+            } else {
+                result = methodProxy.invoke(target, args);
             }
-            if (tempResult) {
-                methodDesc = descs[i];
-                break;
-            }
-        }
-        if (methodDesc != null) {
-            Class targetClass = target == null ? null : target.getClass();
-            ReturnPoint point = new ReturnPoint();
-            boolean first = true;
-            do {
-                try {
-                    if (point.point == ReturnPoint.Point.BEFORE || first) {
-                        first = false;
-                        objects = webPlugin.before(objects, targetClass, methodDesc, point);
-                        if (point.point == ReturnPoint.Point.BREAK) {
-                            break;
-                        }
-                        point.point = ReturnPoint.Point.BREAK;
-                    }
-                    // 如果代理的是真正实现对象的话就执行
-                    if (real) {
-                        if (target == null) {
-                            result = methodProxy.invokeSuper(proxy, objects);
-                        } else {
-                            result = method.invoke(target, objects);
-                        }
-                    }
-                } catch (StopWebRequestException e) {
-                    throw e;
-                } catch (Throwable throwable) {
-                    point.point = ReturnPoint.Point.ERROR;
-                    if (throwable instanceof InvocationTargetException) {
-                        throw ((InvocationTargetException) throwable).getTargetException();
-                    }
-                    Throwable inner = throwable;
-                    while (true) {
-                        Throwable temp = throwable.getCause();
-                        if (null == temp || temp == inner) break;
-                        inner = temp;
-                    }
-                    if (inner != null && inner instanceof InterruptedException) {
-                        throw inner;
-                    }
-                    throw throwable;
-                } finally {
-                    result = webPlugin.after(proxy, objects, result, targetClass, methodDesc, point);
-                }
-            } while (point.point != ReturnPoint.Point.BREAK);
-        } else {
             try {
-                // 如果代理的是真正实现对象的话就执行
-                if (real) {
-                    if (target == null) {
-                        result = methodProxy.invokeSuper(proxy, objects);
-                    } else {
-                        result = method.invoke(target, objects);
+                result = plugin.onAfterReturning(aspectInfo, args, result);
+            } catch (Throwable e) {
+                log.error("插件处理正常后置失败", e);
+                return result;
+            }
+            return result;
+        } catch (WebException e) {
+            t = e;
+            throw e;
+        } catch (InvocationTargetException e) {
+            do {
+                if (t == null) t = e.getTargetException();
+                if (t instanceof InvocationTargetException) {
+                    Throwable temp = t.getCause();
+                    if (null == temp) {
+                        break;
                     }
+                    t = temp;
+                    continue;
                 }
-            } catch (Throwable throwable) {
-                if (throwable instanceof InvocationTargetException) {
-                    throw ((InvocationTargetException) throwable).getTargetException();
-                }
-                Throwable inner = throwable;
-                while (true) {
-                    Throwable temp = throwable.getCause();
-                    if (null == temp || temp == inner) break;
-                    inner = temp;
-                }
-                if (inner != null && inner instanceof InterruptedException) {
-                    throw inner;
-                }
-                throw throwable;
+                break;
+            } while (true);
+            try {
+                plugin.onAfterThrowing(aspectInfo, args, t);
+            } catch (Throwable ex) {
+                log.error("插件处理异常后置失败", ex);
+            }
+            throw t;
+        } catch (Throwable throwable) {
+            t = throwable;
+            try {
+                plugin.onAfterThrowing(aspectInfo, args, t);
+            } catch (Throwable ex) {
+                log.error("插件处理异常后置失败", ex);
+            }
+            throw t;
+        } finally {
+            try {
+                plugin.onFinal(aspectInfo, args, t);
+            } catch (Throwable e) {
+                log.error("插件处理最终后置失败", e);
             }
         }
-        return result;
     }
 }

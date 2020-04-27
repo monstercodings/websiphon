@@ -15,11 +15,10 @@ import top.codings.websiphon.core.context.event.async.*;
 import top.codings.websiphon.core.context.event.listener.WebAsyncEventListener;
 import top.codings.websiphon.core.context.event.listener.WebSyncEventListener;
 import top.codings.websiphon.core.context.event.sync.WebAfterParseEvent;
-import top.codings.websiphon.core.context.event.sync.WebBeforeParseEvent;
 import top.codings.websiphon.core.context.event.sync.WebBeforeRequestEvent;
 import top.codings.websiphon.core.parser.WebParser;
 import top.codings.websiphon.core.pipeline.ReadWritePipeline;
-import top.codings.websiphon.core.plugins.WebPluginPro;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.schedule.support.BasicRequestScheduler;
 import top.codings.websiphon.exception.StopWebRequestException;
@@ -61,7 +60,7 @@ public class BasicWebHandler implements WebHandler {
     @Setter
     private BasicRequestScheduler scheduler;
     @Setter
-    private List<WebPluginPro> plugins;
+    private List<WebPlugin> plugins;
     /**
      * 异步事件池
      */

@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.core.plugins.AspectInfo;
-import top.codings.websiphon.core.plugins.WebPluginPro;
+import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.factory.bean.WebHandler;
 import top.codings.websiphon.util.HttpOperator;
@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 @Slf4j
 @NoArgsConstructor
-public class QpsPlugin implements WebPluginPro {
+public class QpsPlugin implements WebPlugin {
     private ExecutorService executorService;
     private AtomicLong totalNow = new AtomicLong(0);
     private AtomicLong totalPrev = new AtomicLong(0);
