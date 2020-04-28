@@ -125,7 +125,7 @@ public class BasicWebRequester implements WebRequester {
                                                 Cookie cookie = ClientCookieDecoder.LAX.decode(header.getValue());
                                                 response.getCookies().add(cookie);
                                             }
-                                            headers.put(header.getKey(), header.getValue());
+                                            headers.put(header.getKey().toLowerCase(), header.getValue());
                                             if (header.getKey().equalsIgnoreCase("Content-Type")) {
                                                 contentTypeStr = header.getValue();
                                                 contentType = ContentType.parse(contentTypeStr);
