@@ -67,7 +67,6 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
     @Override
     public void onBefore(AspectInfo aspectInfo, Object[] args) throws WebException {
         if (aspectInfoMap.get("handle") == aspectInfo) {
-            log.debug("[{}.{}]切面 -> {}", aspectInfo.getClazz().getSimpleName(), aspectInfo.getMethod().getName(), ((T) args[0]).uri());
             requestHolder.add((T) args[0]);
         } else if (aspectInfoMap.get("release") == aspectInfo) {
             WebRequest request = (WebRequest) args[0];
