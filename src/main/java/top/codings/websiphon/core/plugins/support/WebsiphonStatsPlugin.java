@@ -25,7 +25,7 @@ public class WebsiphonStatsPlugin implements WebPlugin {
 
     private void statsTotal(WebRequest request) {
         HttpOperator.HttpProtocol protocol = HttpOperator.resolve(request.uri());
-        if (request.response().getResult() == null) {
+        if (request.response() == null) {
             AtomicLong atomicLong = hostFailed.get(protocol.getHost());
             if (null == atomicLong) {
                 synchronized (hostFailed) {
@@ -40,7 +40,7 @@ public class WebsiphonStatsPlugin implements WebPlugin {
             atomicLong.incrementAndGet();
             return;
         }
-        int statusCode = request.response().getResult().getKey();
+        int statusCode = request.response().getStatusCode();
         AtomicLong atomicLong = statusCodeCount.get(statusCode);
         if (null == atomicLong) {
             synchronized (statusCodeCount) {
@@ -66,7 +66,7 @@ public class WebsiphonStatsPlugin implements WebPlugin {
                 }
             }
         }
-        int statusCode = request.response().getResult().getKey();
+        int statusCode = request.response().getStatusCode();
         AtomicLong atomicLong = myStatusCodeCount.get(statusCode);
         if (null == atomicLong) {
             synchronized (myStatusCodeCount) {

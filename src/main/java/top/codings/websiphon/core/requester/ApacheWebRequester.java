@@ -212,7 +212,8 @@ public class ApacheWebRequester implements WebRequester<BasicWebRequest> {
     private void fillResponseBody(HttpResponse httpResponse, WebRequest webRequest) throws IOException {
         WebResponse webResponse = webRequest.response();
         // 装填响应状态
-        webResponse.setResult(WebResponse.Result.valueOf(httpResponse.getStatusLine().getStatusCode()));
+        webResponse.setStatusCode(httpResponse.getStatusLine().getStatusCode());
+//        webResponse.setResult(WebResponse.Result.valueOf(httpResponse.getStatusLine().getStatusCode()));
         // 装填URL
         webResponse.setUrl(webRequest.uri());
         // 装填响应内容
@@ -388,7 +389,7 @@ public class ApacheWebRequester implements WebRequester<BasicWebRequest> {
                 }
                 fillResponseBody(httpResponse, webRequest);
                 if (!ignoreHttpError) {
-                    int respCode = webResponse.getResult().getKey();
+                    int respCode = webResponse.getStatusCode();
                     // 判断响应码是否正常
                     if (!(respCode >= 200 && respCode < 300)) {
                         throw new WebNetworkException(String.format("响应码不是2xx [%d]", httpResponse.getStatusLine().getStatusCode()));

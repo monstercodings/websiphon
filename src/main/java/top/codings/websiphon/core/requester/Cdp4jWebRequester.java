@@ -111,7 +111,7 @@ public class Cdp4jWebRequester<W extends WebRequest> implements WebRequester<W> 
 
             WebResponse response = request.response();
             response.setUrl(request.uri());
-            response.setResult(WebResponse.Result.OK);
+            response.setStatusCode(200);
             if (StringUtils.isBlank(content) && throwable != null) {
                 request.failed(throwable);
                 return;

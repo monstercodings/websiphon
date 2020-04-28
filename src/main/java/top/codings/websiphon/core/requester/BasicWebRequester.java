@@ -150,7 +150,7 @@ public class BasicWebRequester implements WebRequester {
                                             }
                                         }
                                         // TODO 处理3xx跳转问题
-                                        response.setResult(WebResponse.Result.valueOf(fullHttpResponse.status().code()));
+                                        response.setStatusCode(fullHttpResponse.status().code());
                                         response.setContentType(contentTypeStr);
                                         response.setBytes(bytes);
                                         response.setUrl(webRequest.uri());

@@ -16,13 +16,14 @@ public class WebResponse {
     protected String html;
     protected byte[] bytes;
     protected String contentType;
-    protected Result result;
+    //    protected Result result;
+    protected int statusCode;
     protected Map<String, String> headers = new HashMap<>();
     protected List<Cookie> cookies = new LinkedList<>();
     protected boolean redirect = false;
     protected String redirectUrl;
 
-    public enum Result {
+    /*public enum Result {
         SUCCESS(0, "请求成功"),
 
         ILL_HEALTH(10001, "爬虫状态异常"),
@@ -51,9 +52,9 @@ public class WebResponse {
         FOUND(302, "Found"),
         SEE_OTHER(303, "See Other"),
         NOT_MODIFIED(304, "Not Modified"),
-        /**
+        *//**
          * @deprecated
-         */
+         *//*
         @Deprecated
         USE_PROXY(305, "Use Proxy"),
         TEMPORARY_REDIRECT(307, "Temporary Redirect"),
@@ -77,19 +78,19 @@ public class WebResponse {
         REQUESTED_RANGE_NOT_SATISFIABLE(416, "Requested range not satisfiable"),
         EXPECTATION_FAILED(417, "Expectation Failed"),
         I_AM_A_TEAPOT(418, "I'm a teapot"),
-        /**
+        *//**
          * @deprecated
-         */
+         *//*
         @Deprecated
         INSUFFICIENT_SPACE_ON_RESOURCE(419, "Insufficient Space On Resource"),
-        /**
+        *//**
          * @deprecated
-         */
+         *//*
         @Deprecated
         METHOD_FAILURE(420, "Method Failure"),
-        /**
+        *//**
          * @deprecated
-         */
+         *//*
         @Deprecated
         DESTINATION_LOCKED(421, "Destination Locked"),
         UNPROCESSABLE_ENTITY(422, "Unprocessable Entity"),
@@ -137,5 +138,5 @@ public class WebResponse {
             }
             return UNKNOWN_RESPONSE_CODE;
         }
-    }
+    }*/
 }

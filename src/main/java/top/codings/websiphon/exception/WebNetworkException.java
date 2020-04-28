@@ -1,14 +1,13 @@
 package top.codings.websiphon.exception;
 
 import top.codings.websiphon.bean.WebResponse;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 public class WebNetworkException extends WebException {
-    protected WebResponse.Result result;
+    protected int statusCode;
 
     public WebNetworkException() {
     }
@@ -41,42 +40,42 @@ public class WebNetworkException extends WebException {
         super(cause, accessory);
     }
 
-    public WebNetworkException(WebResponse.Result result) {
-        this.result = result;
+    public WebNetworkException(int statusCode) {
+        this.statusCode = statusCode;
     }
 
-    public WebNetworkException(String message, WebResponse.Result result) {
+    public WebNetworkException(String message, int statusCode) {
         super(message);
-        this.result = result;
+        this.statusCode = statusCode;
     }
 
-    public WebNetworkException(String message, Throwable cause, WebResponse.Result result) {
+    public WebNetworkException(String message, Throwable cause, int statusCode) {
         super(message, cause);
-        this.result = result;
+        this.statusCode = statusCode;
     }
 
-    public WebNetworkException(Throwable cause, WebResponse.Result result) {
+    public WebNetworkException(Throwable cause, int statusCode) {
         super(cause);
-        this.result = result;
+        this.statusCode = statusCode;
     }
 
-    public WebNetworkException(Object accessory, WebResponse.Result result) {
+    public WebNetworkException(Object accessory, int statusCode) {
         super(accessory);
-        this.result = result;
+        this.statusCode = statusCode;
     }
 
-    public WebNetworkException(String message, Object accessory, WebResponse.Result result) {
+    public WebNetworkException(String message, Object accessory, int statusCode) {
         super(message, accessory);
-        this.result = result;
+        this.statusCode = statusCode;
     }
 
-    public WebNetworkException(String message, Throwable cause, Object accessory, WebResponse.Result result) {
+    public WebNetworkException(String message, Throwable cause, Object accessory, int statusCode) {
         super(message, cause, accessory);
-        this.result = result;
+        this.statusCode = statusCode;
     }
 
-    public WebNetworkException(Throwable cause, Object accessory, WebResponse.Result result) {
+    public WebNetworkException(Throwable cause, Object accessory, int statusCode) {
         super(cause, accessory);
-        this.result = result;
+        this.statusCode = statusCode;
     }
 }
