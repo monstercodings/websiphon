@@ -23,24 +23,7 @@ public class BasicWebParser implements WebParser {
     public void parse(WebRequest request) throws WebParseException {
         WebBeforeParseEvent event = new WebBeforeParseEvent();
         event.setRequest(request);
-        try {
-            handler.postSyncEvent(event);
-        }  catch (StopWebRequestException e) {
-            request.status(WebRequest.Status.STOP);
-            return;
-        } catch (WebException e) {
-            WebParseExceptionEvent exceptionEvent = new WebParseExceptionEvent();
-            exceptionEvent.setRequest(request);
-            exceptionEvent.setThrowable(e);
-            handler.postAsyncEvent(exceptionEvent);
-            return;
-        } catch (Exception e) {
-            AllExceptionEvent exceptionEvent = new AllExceptionEvent();
-            exceptionEvent.setRequest(request);
-            exceptionEvent.setThrowable(e);
-            handler.postAsyncEvent(exceptionEvent);
-            return;
-        }
+        handler.postSyncEvent(event);
         Iterator<WebProcessorDefinition> iterator = processorDefinitions.iterator();
         while (iterator.hasNext()) {
             WebProcessorDefinition definition = iterator.next();

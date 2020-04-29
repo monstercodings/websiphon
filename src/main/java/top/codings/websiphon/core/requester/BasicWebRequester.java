@@ -213,16 +213,6 @@ public class BasicWebRequester implements WebRequester {
     }
 
     @Override
-    public int size() {
-        return 0;
-    }
-
-    @Override
-    public boolean isHealth() {
-        return true;
-    }
-
-    @Override
     public void close() {
         workerGroup.shutdownGracefully();
     }

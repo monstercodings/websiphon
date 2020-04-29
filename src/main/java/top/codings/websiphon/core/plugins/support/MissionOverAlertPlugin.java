@@ -79,7 +79,7 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
 
     @Override
     public Object onAfterReturning(AspectInfo aspectInfo, Object[] args, Object returnValue) {
-        WebRequest request = (WebRequest) args[0];
+//        WebRequest request = (WebRequest) args[0];
         return returnValue;
     }
 
@@ -139,6 +139,7 @@ public class MissionOverAlertPlugin<T extends WebRequest> implements WebPlugin {
                     result.clear();
                     TimeUnit.MILLISECONDS.sleep(expired);
                 } catch (InterruptedException e) {
+                    log.debug("队列监控线程中断");
                     return;
                 } catch (Exception e) {
                     log.error("监督队列情况出现异常", e);

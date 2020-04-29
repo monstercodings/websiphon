@@ -7,6 +7,7 @@ import top.codings.websiphon.core.schedule.RequestScheduler;
 import top.codings.websiphon.util.HttpOperator;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 /**
@@ -38,6 +39,7 @@ public class BasicRequestScheduler implements RequestScheduler {
                     log.error("爬虫调度器出现异常", e);
                 }
             }
+            log.debug("爬虫调度器结束运行");
         });
     }
 
@@ -76,19 +78,15 @@ public class BasicRequestScheduler implements RequestScheduler {
         boolean next = false;
         for (Map.Entry<String, HostAndTask> entry : hostAndTasks.entrySet()) {
             HostAndTask hostAndTask = entry.getValue();
-            if (hostAndTask.queue.isEmpty()) {
+            if (hostAndTask.queue.peek() == null || !hostAndTask.token.tryAcquire()) {
                 continue;
             }
-            if (!hostAndTask.token.tryAcquire()) {
-                continue;
-            }
-            WebRequest request = hostAndTask.queue.poll();
-            tasks.offer(request);
-            next = true;
+            hostAndTask.take().ifPresent(tasks::offer);
+//            next = true;
         }
-        if (!next) {
+        /*if (!next) {
             TimeUnit.SECONDS.sleep(1);
-        }
+        }*/
     }
 
     @Override
@@ -99,6 +97,13 @@ public class BasicRequestScheduler implements RequestScheduler {
     private class HostAndTask {
         private Semaphore token = new Semaphore(maxRequestCount);
         private LinkedTransferQueue<WebRequest> queue = new LinkedTransferQueue<>();
+
+        private Optional<WebRequest> take() {
+            if (queue.peek() == null || !token.tryAcquire()) {
+                return Optional.empty();
+            }
+            return Optional.ofNullable(queue.poll());
+        }
     }
 
 }

@@ -48,6 +48,11 @@ public class BasicWebRequest implements WebRequest {
     }
 
     @Override
+    public int timeout() {
+        return timeout == 0 ? 30000 : timeout;
+    }
+
+    @Override
     public Map<String, String> headers() {
         return headers;
     }

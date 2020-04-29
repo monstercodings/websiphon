@@ -45,8 +45,6 @@ import top.codings.websiphon.util.HttpOperator;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.nio.charset.Charset;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -185,9 +183,9 @@ public class ApacheWebRequester implements WebRequester<BasicWebRequest> {
             HttpRequestBase httpRequest;
             httpRequest = initMethod(webRequest);
             initHeaders(webRequest, httpRequest);
-            if (webRequest.body() instanceof JSON) {
+            /*if (webRequest.body() instanceof JSON) {
                 httpRequest.setHeader("content-type", "application/json;charset=UTF-8");
-            }
+            }*/
             initConfig(webRequest, httpRequest);
             HttpClientContext context = HttpClientContext.create();
             context.setAttribute(WebRequest.class.getName(), webRequest);
@@ -197,7 +195,7 @@ public class ApacheWebRequester implements WebRequester<BasicWebRequest> {
                     new AsyncFutureCallback(webRequest));
         } catch (Exception e) {
             size.decrementAndGet();
-            throw new WebNetworkException("执行异步请求失败", e);
+            webRequest.failed(e);
         }
 
     }
@@ -239,6 +237,9 @@ public class ApacheWebRequester implements WebRequester<BasicWebRequest> {
             } else if (contentType.getMimeType().startsWith("text")) {
                 webResponse.setHtml(new String(webResponse.getBytes(), encoding));
             }
+        } else {
+            webResponse.setContentType(ContentType.TEXT_HTML.getMimeType());
+            webResponse.setHtml(new String(webResponse.getBytes(), encoding));
         }
     }
 
@@ -255,10 +256,11 @@ public class ApacheWebRequester implements WebRequester<BasicWebRequest> {
             HttpHost proxyHost = new HttpHost(((InetSocketAddress) proxy.address()).getHostName(), ((InetSocketAddress) proxy.address()).getPort());
             builder.setProxy(proxyHost);
         }*/
+        int timeout = webRequest.timeout();
         RequestConfig config = builder
-                .setSocketTimeout(30000)
-                .setConnectTimeout(30000)
-                .setConnectionRequestTimeout(30000)
+                .setSocketTimeout(timeout)
+                .setConnectTimeout(timeout)
+                .setConnectionRequestTimeout(timeout)
                 .setRedirectsEnabled(redirect)
                 .setMaxRedirects(maxRedirects)
                 .setContentCompressionEnabled(false)
@@ -355,11 +357,6 @@ public class ApacheWebRequester implements WebRequester<BasicWebRequest> {
     }
 
     @Override
-    public int size() {
-        return size.get();
-    }
-
-    @Override
     public void close() {
         try {
             health = false;
@@ -383,16 +380,13 @@ public class ApacheWebRequester implements WebRequester<BasicWebRequest> {
             size.decrementAndGet();
             try {
                 WebResponse webResponse = webRequest.response();
-                if (null == webResponse) {
-                    webRequest.succeed();
-                    return;
-                }
                 fillResponseBody(httpResponse, webRequest);
                 if (!ignoreHttpError) {
                     int respCode = webResponse.getStatusCode();
                     // 判断响应码是否正常
                     if (!(respCode >= 200 && respCode < 300)) {
-                        throw new WebNetworkException(String.format("响应码不是2xx [%d]", httpResponse.getStatusLine().getStatusCode()));
+                        webRequest.failed(new WebNetworkException(String.format("响应码不是2xx [%d]", httpResponse.getStatusLine().getStatusCode())));
+                        return;
                     }
                 }
             } catch (Exception e) {

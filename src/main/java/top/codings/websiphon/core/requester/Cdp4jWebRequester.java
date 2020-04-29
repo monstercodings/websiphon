@@ -1,10 +1,5 @@
 package top.codings.websiphon.core.requester;
 
-import top.codings.websiphon.bean.WebRequest;
-import top.codings.websiphon.bean.WebResponse;
-import top.codings.websiphon.core.context.CrawlerContext;
-import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
-import top.codings.websiphon.util.HttpDecodeUtils;
 import com.alibaba.fastjson.JSON;
 import io.webfolder.cdp.Launcher;
 import io.webfolder.cdp.session.Session;
@@ -12,12 +7,15 @@ import io.webfolder.cdp.session.SessionFactory;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import top.codings.websiphon.bean.WebRequest;
+import top.codings.websiphon.bean.WebResponse;
+import top.codings.websiphon.core.context.CrawlerContext;
+import top.codings.websiphon.util.HttpDecodeUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedTransferQueue;
@@ -131,11 +129,6 @@ public class Cdp4jWebRequester<W extends WebRequest> implements WebRequester<W> 
             }
             crawlerContext.doOnFinished(request);
         });
-    }
-
-    @Override
-    public int size() {
-        return size.get();
     }
 
     @Override

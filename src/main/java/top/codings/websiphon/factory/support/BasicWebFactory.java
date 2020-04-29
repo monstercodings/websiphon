@@ -15,7 +15,7 @@ import top.codings.websiphon.core.plugins.AspectInfo;
 import top.codings.websiphon.core.plugins.PluginFactory;
 import top.codings.websiphon.core.plugins.WebPlugin;
 import top.codings.websiphon.core.processor.WebProcessor;
-import top.codings.websiphon.core.requester.BasicWebRequester;
+import top.codings.websiphon.core.requester.HttpWebRequester;
 import top.codings.websiphon.core.requester.WebRequester;
 import top.codings.websiphon.core.schedule.RequestScheduler;
 import top.codings.websiphon.core.schedule.support.BasicRequestScheduler;
@@ -95,7 +95,7 @@ public class BasicWebFactory implements WebFactory {
     public Crawler build() {
         plugins.sort(Comparator.comparingInt(WebPlugin::index).reversed());
         if (requester == null) {
-            requester = new BasicWebRequester();
+            requester = new HttpWebRequester();
         }
         if (webParser == null) {
             webParser = new BasicWebParser();

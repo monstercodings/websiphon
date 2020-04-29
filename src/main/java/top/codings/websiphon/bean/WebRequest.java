@@ -12,6 +12,8 @@ public interface WebRequest {
 
     Object body();
 
+    int timeout();
+
     Map<String, String> headers();
 
     WebResponse response();

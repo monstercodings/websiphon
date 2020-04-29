@@ -20,6 +20,7 @@ import top.codings.websiphon.core.proxy.bean.WebProxy;
 import top.codings.websiphon.core.proxy.pool.BasicProxyPool;
 import top.codings.websiphon.core.proxy.pool.ProxyPool;
 import top.codings.websiphon.core.requester.BasicWebRequester;
+import top.codings.websiphon.core.requester.HttpWebRequester;
 import top.codings.websiphon.core.support.CrawlerBuilder;
 import top.codings.websiphon.exception.WebException;
 import top.codings.websiphon.exception.WebParseException;
@@ -39,10 +40,10 @@ public class Demo {
         // 构建爬虫对象
         Crawler crawler = CrawlerBuilder
                 .create()
-                // 配置请求器，默认请求器为BasicWebRequester，若非自行编写请求器的话可以不需要配置
-                .addLast(new BasicWebRequester())
+                // 配置请求器，默认请求器为HttpWebRequester，若非自行编写请求器的话可以不需要配置
+                .addLast(new HttpWebRequester())
                 // 配置数据来源管道，非必须，如果有持续任务输入来源，可自行实现管道接口来对接爬虫
-                .addLast(new FilePipeline("list.properties", "utf-8"))
+                .addLast(new FilePipeline("config/list.properties", "utf-8"))
                 // 配置文档处理器，用于解析返回的html并抽取想要的结构化信息
                 .addLast(new WebProcessorAdapter<BasicWebRequest>() {
                     @Override
@@ -60,7 +61,7 @@ public class Demo {
                         CookiePlugin.ReadFromFile.from("config/cookie.txt"),
                         CookiePlugin.WriteToFile.to("config/cookie.txt")))
                 // URL提取插件 - 自动抓取页面上的所有链接，可自定义各种提取规则
-                .addLast(new ExtractUrlPlugin(true, false))
+//                .addLast(new ExtractUrlPlugin(true, false))
                 // 任务完成监控通知插件 - 当爬虫内的爬取任务都完成后会执行该回调
                 .addLast(new MissionOverAlertPlugin((MissionOverAlertPlugin.MissionOverHandler<WebRequest>) request -> {
 //                    log.debug("最后的URL -> {}", request.uri());

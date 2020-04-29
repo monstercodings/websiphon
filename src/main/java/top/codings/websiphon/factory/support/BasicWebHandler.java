@@ -189,7 +189,7 @@ public class BasicWebHandler implements WebHandler {
         runThread.start();
         if (readWritePipelines != null && !readWritePipelines.isEmpty()) {
             readWritePipelines.forEach(readWritePipeline -> readWritePipeline.init());
-            Thread transfer = new Thread(() -> {
+            Thread pipelineThread = new Thread(() -> {
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
                         for (ReadWritePipeline readWritePipeline : readWritePipelines) {
@@ -209,11 +209,13 @@ public class BasicWebHandler implements WebHandler {
                     }
                 } catch (InterruptedException e) {
                     return;
+                } finally {
+                    log.debug("管道线程结束运行");
                 }
             });
-            transfer.setName("transfer");
-            transfer.setDaemon(true);
-            transfer.start();
+            pipelineThread.setName("pipeline");
+            pipelineThread.setDaemon(true);
+            pipelineThread.start();
         }
     }
 
