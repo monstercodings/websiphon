@@ -189,6 +189,9 @@ public class BasicWebFactory implements WebFactory {
         }
         basicCrawlerContext.setWebHandler(webHandler);
         basicCrawler.setContext(basicCrawlerContext);
+        if (requester instanceof HttpWebRequester) {
+            ((HttpWebRequester) requester).setContext(basicCrawlerContext);
+        }
         return basicCrawler;
     }
 }

@@ -147,6 +147,9 @@ public class BasicWebHandler implements WebHandler {
     }
 
     public void handleFailed(WebErrorAsyncEvent event) {
+        if (event.getThrowable() instanceof StopWebRequestException) {
+            return;
+        }
         postAsyncEvent(event);
     }
 

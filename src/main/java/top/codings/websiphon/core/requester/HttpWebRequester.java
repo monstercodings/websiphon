@@ -2,6 +2,7 @@ package top.codings.websiphon.core.requester;
 
 import com.alibaba.fastjson.JSON;
 import lombok.AllArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
@@ -12,6 +13,7 @@ import org.apache.http.client.entity.InputStreamFactory;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.protocol.RequestAcceptEncoding;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -28,15 +30,20 @@ import org.apache.http.util.EntityUtils;
 import top.codings.websiphon.bean.BasicWebRequest;
 import top.codings.websiphon.bean.WebRequest;
 import top.codings.websiphon.bean.WebResponse;
+import top.codings.websiphon.core.context.CrawlerContext;
+import top.codings.websiphon.core.context.event.sync.WebDownloadEvent;
 import top.codings.websiphon.core.proxy.bean.WebProxy;
 import top.codings.websiphon.exception.WebNetworkException;
+import top.codings.websiphon.util.HttpDecodeUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public class HttpWebRequester implements WebRequester<BasicWebRequest> {
@@ -44,6 +51,8 @@ public class HttpWebRequester implements WebRequester<BasicWebRequest> {
     private CloseableHttpAsyncClient client;
     private RequestConfig config;
     private Registry<InputStreamFactory> decoderRegistry;
+    @Setter
+    private CrawlerContext context;
 
     public HttpWebRequester() {
         this(false);
@@ -200,6 +209,9 @@ public class HttpWebRequester implements WebRequester<BasicWebRequest> {
         @Override
         public void completed(HttpResponse result) {
             try {
+                WebDownloadEvent event = new WebDownloadEvent(ContentType.getOrDefault(result.getEntity()), result.getEntity().getContentLength());
+                event.setRequest(webRequest);
+                context.postSyncEvent(event);
                 byte[] bytes = EntityUtils.toByteArray(result.getEntity());
                 final Header ceheader = result.getEntity().getContentEncoding();
                 if (ceheader != null) {
@@ -219,6 +231,8 @@ public class HttpWebRequester implements WebRequester<BasicWebRequest> {
                 webRequest.succeed();
             } catch (Exception e) {
                 webRequest.failed(e);
+            } finally {
+                HttpClientUtils.closeQuietly(result);
             }
         }
 
@@ -264,7 +278,7 @@ public class HttpWebRequester implements WebRequester<BasicWebRequest> {
             // 装填响应内容
             webResponse.setBytes(bytes);
             ContentType contentType = ContentType.getOrDefault(httpResponse.getEntity());
-            String content = new String(bytes, contentType.getCharset());
+            String content = new String(bytes, Optional.ofNullable(contentType.getCharset()).orElse(Charset.forName(HttpDecodeUtils.findCharset(webResponse.getBytes()))));
             // 装填响应类型
             webResponse.setContentType(contentType.getMimeType());
             if (contentType.getMimeType().contains("json")) {

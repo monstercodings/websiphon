@@ -12,6 +12,7 @@ import top.codings.websiphon.core.context.event.async.WebNetworkExceptionEvent;
 import top.codings.websiphon.core.context.event.listener.WebAsyncEventListener;
 import top.codings.websiphon.core.context.event.listener.WebSyncEventListener;
 import top.codings.websiphon.core.context.event.sync.WebBeforeRequestEvent;
+import top.codings.websiphon.core.context.event.sync.WebDownloadEvent;
 import top.codings.websiphon.core.context.event.sync.WebLinkEvent;
 import top.codings.websiphon.core.pipeline.FilePipeline;
 import top.codings.websiphon.core.plugins.support.*;
@@ -19,7 +20,6 @@ import top.codings.websiphon.core.processor.WebProcessorAdapter;
 import top.codings.websiphon.core.proxy.bean.WebProxy;
 import top.codings.websiphon.core.proxy.pool.BasicProxyPool;
 import top.codings.websiphon.core.proxy.pool.ProxyPool;
-import top.codings.websiphon.core.requester.BasicWebRequester;
 import top.codings.websiphon.core.requester.HttpWebRequester;
 import top.codings.websiphon.core.support.CrawlerBuilder;
 import top.codings.websiphon.exception.WebException;
@@ -61,7 +61,7 @@ public class Demo {
                         CookiePlugin.ReadFromFile.from("config/cookie.txt"),
                         CookiePlugin.WriteToFile.to("config/cookie.txt")))
                 // URL提取插件 - 自动抓取页面上的所有链接，可自定义各种提取规则
-//                .addLast(new ExtractUrlPlugin(true, false))
+                .addLast(new ExtractUrlPlugin(true, false))
                 // 任务完成监控通知插件 - 当爬虫内的爬取任务都完成后会执行该回调
                 .addLast(new MissionOverAlertPlugin((MissionOverAlertPlugin.MissionOverHandler<WebRequest>) request -> {
 //                    log.debug("最后的URL -> {}", request.uri());
@@ -75,6 +75,13 @@ public class Demo {
                 .addLast(statsPlugin)
                 // QPS统计插件 - 统计总实时QPS以及各域名对应的实时QPS
                 .addLast(qpsPlugin)
+                .addListener(new WebSyncEventListener<WebDownloadEvent>() {
+                    @Override
+                    public void listen(WebDownloadEvent event) throws WebException {
+                        log.debug("请求类型 -> {} | 长度 -> {}", event.getContentType(), event.getContentLength());
+//                        event.getRequest().stop();
+                    }
+                })
                 // 发起请求前事件监听器
                 .addListener(new WebSyncEventListener<WebBeforeRequestEvent>() {
                     @Override
