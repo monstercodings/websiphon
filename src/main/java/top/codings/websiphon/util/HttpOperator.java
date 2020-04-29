@@ -21,6 +21,7 @@ public class HttpOperator {
         if (StringUtils.isBlank(href)) {
             return "";
         }
+        href = href.trim();
         String nowDomain = realUrl;
         if (nowDomain.startsWith("http")) {
             nowDomain = nowDomain.substring(nowDomain.indexOf("//") + 2);
