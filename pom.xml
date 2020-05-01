@@ -6,7 +6,7 @@
 
     <groupId>top.codings</groupId>
     <artifactId>websiphon</artifactId>
-    <version>0.1.31</version>
+    <version>0.1.32</version>
     <packaging>jar</packaging>
 
     <parent>

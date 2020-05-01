@@ -130,7 +130,7 @@ public class HttpWebRequester implements WebRequester<BasicWebRequest> {
                 .setConnectTimeout(basicWebRequest.timeout())
                 .setConnectionRequestTimeout(basicWebRequest.timeout());
         WebProxy proxy = basicWebRequest.getProxy();
-        if (proxy != null) {
+        if (proxy != null && proxy != WebProxy.NO_PROXY) {
             builder.setProxy(new HttpHost(proxy.getProxyIp(), proxy.getProxyPort()));
         }
         context.setRequestConfig(builder.build());

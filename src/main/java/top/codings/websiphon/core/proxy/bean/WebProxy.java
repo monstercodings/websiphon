@@ -4,9 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class WebProxy {
+    public final static WebProxy NO_PROXY = new WebProxy(null, 0);
+
     @Getter
     @Setter
     protected String proxyIp;
