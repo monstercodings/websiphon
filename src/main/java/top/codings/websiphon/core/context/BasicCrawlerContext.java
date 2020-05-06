@@ -3,6 +3,7 @@ package top.codings.websiphon.core.context;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
 import top.codings.websiphon.core.context.event.WebAsyncEvent;
 import top.codings.websiphon.core.context.event.WebSyncEvent;
 import top.codings.websiphon.core.support.BasicCrawler;
@@ -38,9 +39,7 @@ public class BasicCrawlerContext implements CrawlerContext {
 
     @Override
     public void clearTask() {
-        if (webHandler.getReadWritePipelines() != null) {
-            webHandler.getReadWritePipelines().clear();
-        }
+        throw new NotImplementedException("暂未实现");
     }
 
     @Override

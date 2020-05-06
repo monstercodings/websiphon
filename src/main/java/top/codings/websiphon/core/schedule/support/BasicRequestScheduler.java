@@ -75,15 +75,15 @@ public class BasicRequestScheduler implements RequestScheduler {
     }
 
     private void schedule() throws InterruptedException {
-//        boolean next = false;
+        boolean next = false;
         for (Map.Entry<String, HostAndTask> entry : hostAndTasks.entrySet()) {
             HostAndTask hostAndTask = entry.getValue();
             hostAndTask.take().ifPresent(tasks::offer);
-//            next = true;
+            next = true;
         }
-        /*if (!next) {
+        if (!next) {
             TimeUnit.SECONDS.sleep(1);
-        }*/
+        }
     }
 
     @Override

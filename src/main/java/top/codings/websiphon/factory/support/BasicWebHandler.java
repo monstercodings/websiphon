@@ -57,6 +57,7 @@ public class BasicWebHandler implements WebHandler {
     @Getter
     private Map<Class<? extends WebSyncEvent>, WebSyncEventListener> syncMap = new HashMap<>();
     private Thread runThread;
+    @Getter
     @Setter
     private BasicRequestScheduler scheduler;
     @Setter
