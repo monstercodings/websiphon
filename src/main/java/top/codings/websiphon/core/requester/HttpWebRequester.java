@@ -195,8 +195,14 @@ public class HttpWebRequester implements WebRequester<BasicWebRequest> {
             HttpEntityEnclosingRequestBase httpEntityEnclosingRequest = httpRequest;
             HttpEntity httpEntity;
             if (webRequest.body() instanceof String) {
+                if (!webRequest.headers().containsKey("Content-Type") && !webRequest.headers().containsKey("content-type")) {
+                    webRequest.headers().put("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+                }
                 httpEntity = new StringEntity(webRequest.body().toString(), "utf-8");
             } else if (webRequest.body() instanceof JSON) {
+                if (!webRequest.headers().containsKey("Content-Type") && !webRequest.headers().containsKey("content-type")) {
+                    webRequest.headers().put("Content-Type", "application/json;charset=utf-8");
+                }
                 httpEntity = new StringEntity(webRequest.body().toString(), "utf-8");
             } else if (webRequest.body() instanceof byte[]) {
                 BasicHttpEntity basicHttpEntity = new BasicHttpEntity();
