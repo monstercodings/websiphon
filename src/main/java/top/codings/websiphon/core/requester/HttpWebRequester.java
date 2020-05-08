@@ -35,6 +35,7 @@ import top.codings.websiphon.core.context.event.sync.WebDownloadEvent;
 import top.codings.websiphon.core.proxy.bean.WebProxy;
 import top.codings.websiphon.exception.WebNetworkException;
 import top.codings.websiphon.util.HttpDecodeUtils;
+import top.codings.websiphon.util.HttpOperator;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -91,6 +92,14 @@ public class HttpWebRequester implements WebRequester<BasicWebRequest> {
                         request.addHeader("referer", webRequest.uri());
                     }
                 })
+                .addInterceptorLast((HttpResponseInterceptor) (response, context) -> {
+                    WebRequest webRequest = (WebRequest) context.getAttribute("webRequest");
+                    int code = response.getStatusLine().getStatusCode();
+                    if (code >= 300 && code < 400) {
+                        webRequest.response().setRedirect(true);
+                        Optional.ofNullable(response.getFirstHeader("Location")).ifPresent(header -> webRequest.response().setRedirectUrl(HttpOperator.recombineLink(header.getValue(), webRequest.uri())));
+                    }
+                })
 //                .addInterceptorLast(new ResponseContentEncoding())
                 .disableCookieManagement()
                 .setDefaultRequestConfig(config)
@@ -121,7 +130,7 @@ public class HttpWebRequester implements WebRequester<BasicWebRequest> {
                 .setConnectTimeout(basicWebRequest.timeout())
                 .setConnectionRequestTimeout(basicWebRequest.timeout());
         WebProxy proxy = basicWebRequest.getProxy();
-        if (proxy != null) {
+        if (proxy != null && proxy != WebProxy.NO_PROXY) {
             builder.setProxy(new HttpHost(proxy.getProxyIp(), proxy.getProxyPort()));
         }
         context.setRequestConfig(builder.build());

@@ -41,7 +41,7 @@ public class Demo {
         Crawler crawler = CrawlerBuilder
                 .create()
                 // 配置请求器，默认请求器为HttpWebRequester，若非自行编写请求器的话可以不需要配置
-                .addLast(new HttpWebRequester())
+                .addLast(new HttpWebRequester(true))
                 // 配置数据来源管道，非必须，如果有持续任务输入来源，可自行实现管道接口来对接爬虫
                 .addLast(new FilePipeline("config/list.properties", "utf-8"))
                 // 配置文档处理器，用于解析返回的html并抽取想要的结构化信息
@@ -125,6 +125,10 @@ public class Demo {
             // 否则可能造成不可知的数据丢失
             crawler.close();
         }));
+        BasicWebRequest request = new BasicWebRequest();
+        request.setProxy(WebProxy.NO_PROXY);
+        request.setUri("http://www.codings.top");
+        crawler.push(request);
         Thread.currentThread().join();
     }
 }
