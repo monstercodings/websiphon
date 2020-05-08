@@ -55,13 +55,13 @@ public class Demo {
                     }
                 })
                 // 代理池插件 - 为爬虫提供代理功能
-                .addLast(new ProxyPlugin(pool))
+//                .addLast(new ProxyPlugin(pool))
                 // Cookie插件 - 提供cookie维护功能，主要用于需要维护登录状态的场景
                 .addLast(new CookiePlugin(
                         CookiePlugin.ReadFromFile.from("config/cookie.txt"),
                         CookiePlugin.WriteToFile.to("config/cookie.txt")))
                 // URL提取插件 - 自动抓取页面上的所有链接，可自定义各种提取规则
-                .addLast(new ExtractUrlPlugin(true, false))
+//                .addLast(new ExtractUrlPlugin(true, false))
                 // 任务完成监控通知插件 - 当爬虫内的爬取任务都完成后会执行该回调
                 .addLast(new MissionOverAlertPlugin((MissionOverAlertPlugin.MissionOverHandler<WebRequest>) request -> {
 //                    log.debug("最后的URL -> {}", request.uri());
@@ -74,7 +74,7 @@ public class Demo {
                 // 爬取结果统计插件 - 可以实时看到爬取的完成情况
                 .addLast(statsPlugin)
                 // QPS统计插件 - 统计总实时QPS以及各域名对应的实时QPS
-                .addLast(qpsPlugin)
+//                .addLast(qpsPlugin)
                 .addListener(new WebSyncEventListener<WebDownloadEvent>() {
                     @Override
                     public void listen(WebDownloadEvent event) throws WebException {
