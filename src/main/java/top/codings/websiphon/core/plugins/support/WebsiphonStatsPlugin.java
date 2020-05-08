@@ -114,36 +114,6 @@ public class WebsiphonStatsPlugin implements WebPlugin {
         hostFailed.clear();
     }
 
-    /*@Override
-    public Object[] before(Object[] params, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
-        if (params[0] instanceof WebRequest) {
-            WebRequest request = (WebRequest) params[0];
-            statsTotal(request);
-        } else if (params[0] instanceof WebErrorAsyncEvent) {
-            WebErrorAsyncEvent event = (WebErrorAsyncEvent) params[0];
-            WebRequest request = event.getRequest();
-            statsTotal(request);
-        }
-        return params;
-    }
-
-    @Override
-    public Object after(Object proxy, Object[] params, Object result, Class targetClass, MethodDesc methodDesc, ReturnPoint point) throws WebException {
-        return result;
-    }
-
-    @Override
-    public Class[] getTargetInterface() {
-        return new Class[]{CrawlerContext.class};
-    }
-
-    @Override
-    public MethodDesc[] getMethods() {
-        return new MethodDesc[]{
-                new MethodDesc("doOnFinished", new Class[]{Object.class})
-        };
-    }*/
-
     @Override
     public void onBefore(AspectInfo aspectInfo, Object[] args) throws WebException {
         if (args[0] instanceof WebRequest) {
