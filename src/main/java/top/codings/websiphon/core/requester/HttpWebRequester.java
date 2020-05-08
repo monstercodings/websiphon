@@ -87,7 +87,7 @@ public class HttpWebRequester implements WebRequester<BasicWebRequest> {
                 .addInterceptorLast(new RequestAcceptEncoding())
                 .addInterceptorLast((HttpRequestInterceptor) (request, context) -> {
                     WebRequest webRequest = (WebRequest) context.getAttribute("webRequest");
-                    webRequest.headers().forEach(request::addHeader);
+                    webRequest.headers().forEach(request::setHeader);
                     if (!request.containsHeader("referer")) {
                         request.addHeader("referer", webRequest.uri());
                     }
