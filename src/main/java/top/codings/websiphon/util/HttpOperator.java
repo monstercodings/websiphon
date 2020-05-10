@@ -53,7 +53,7 @@ public class HttpOperator {
                 realUrl = realUrl.substring(0, realUrl.length() - 1);
                 href = realUrl + href.substring(1);
             } else {
-                href = realUrl + href.substring(1);
+                href = realUrl.substring(0, realUrl.lastIndexOf("/")) + href.substring(1);
             }
 //            href = realUrl.substring(0, realUrl.indexOf("//")) + "//" + nowDomain + href.substring(1);
         } else if (href.startsWith(nowDomain)) {
