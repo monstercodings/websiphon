@@ -49,7 +49,13 @@ public class HttpOperator {
             }
             href = realUrl + "/" + href;
         } else if (href.startsWith("./")) {
-            href = realUrl.substring(0, realUrl.indexOf("//")) + "//" + nowDomain + href.substring(1);
+            if (realUrl.endsWith("/")) {
+                realUrl = realUrl.substring(0, realUrl.length() - 1);
+                href = realUrl + href.substring(1);
+            } else {
+                href = realUrl + href.substring(1);
+            }
+//            href = realUrl.substring(0, realUrl.indexOf("//")) + "//" + nowDomain + href.substring(1);
         } else if (href.startsWith(nowDomain)) {
             href = realUrl.substring(0, realUrl.indexOf(":") + 1) + "//" + href;
         } else {
@@ -100,6 +106,7 @@ public class HttpOperator {
 
     /**
      * URL合法性校验
+     *
      * @param url
      * @return
      */
